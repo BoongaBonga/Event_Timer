@@ -55,6 +55,7 @@ let displayHidden = false;
 let showMs = false;
 let showPercent = true;
 let showEvent = true;
+let showColor = true;
 
 el_displaySetting_hide.onclick = () => {
   displayHidden = !displayHidden;
@@ -94,6 +95,16 @@ el_displaySetting_show_event.onclick = () => {
   });
 
   clickDispayButton(el_displaySetting_show_event, showEvent);
+};
+
+el_displaySetting_show_color.onclick = () => {
+  showColor = !showColor;
+  channel.postMessage({
+    id: "set_show_color",
+    value: showColor,
+  });
+
+  clickDispayButton(el_displaySetting_show_color, showColor);
 };
 
 //counter controls buttons

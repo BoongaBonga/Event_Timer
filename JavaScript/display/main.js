@@ -11,6 +11,7 @@ let showingMs = false;
 let showingPercent = true;
 let showingEvent = true;
 let currentEvent = "Worship";
+let showingColor = true;
 let paused = false;
 let maximized = false;
 
@@ -38,6 +39,19 @@ function displayCounter() {
 
   let desiredFontSize;
   if (!maximized) {
+    //set timer color based on time left
+    if (showingColor) {
+      if (counter.milliseconds > 12e4) {
+        el_counter.style.color = "white";
+      } else if (counter.milliseconds > 20e3) {
+        el_counter.style.color = "yellow";
+      } else {
+        el_counter.style.color = "red";
+      }
+    } else {
+      el_counter.style.color = "white";
+    }
+
     //get the width of the string
     let sampleWidth = el_testCounter.getBoundingClientRect().width;
     //get the desired font size by dividing 80vw by sampleWidth
@@ -96,6 +110,10 @@ channel.onmessage = (msg) => {
       } else {
         el_event.style.display = "none";
       }
+      break;
+    }
+    case "set_show_color": {
+      showingColor = msg.data.value;
       break;
     }
     case "set_message": {

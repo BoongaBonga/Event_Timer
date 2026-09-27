@@ -38,7 +38,7 @@ body {
   position: absolute;
 
   /* Counter sits below the logo */
-  top: calc(var(--logo-bottom) + 8vh);
+  top: calc(var(--logo-bottom));
 
   left: 50%;
   transform: translateX(-50%);
@@ -117,7 +117,7 @@ body {
   display: block;
 
   /* This is below the counter */
-  top: calc(var(--logo-bottom) + 8vh + var(--font-size) + 2vh);
+  top: calc(var(--logo-bottom) + var(--font-size) + 2vh);
 
   transform: translateX(-50%);
 
@@ -128,7 +128,7 @@ body {
   display: none;
 
   /* Same vertical region as the event */
-  top: calc(var(--logo-bottom) + 8vh + var(--font-size) + 2vh);
+  top: calc(var(--logo-bottom) + var(--font-size) + 2vh);
 
   transform: translateX(-50%);
 
