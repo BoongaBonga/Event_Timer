@@ -1,0 +1,169 @@
+:root{
+  --counterPreviewW: 50vw;
+  --counterPreviewH: 40vh;
+}
+
+body {
+  font-family: sans-serif;
+
+  background-color: rgb(30, 30, 30);
+  color: black;
+}
+
+
+/*COUNTER PREVIEW*/
+#counterPreview{
+  display: flex;
+
+  width: 70vw;
+  height: 40vmin;
+  margin: 20px 20px 0 20px;
+
+  background-color: yellow;
+  color: black;
+
+  border: inset 4px gray;
+
+  align-content: center;
+  text-align: center;
+  flex-direction: column;
+}
+#counter{
+  font-size: calc(70vw/12 / 0.6);
+  font-family: 'Archivo', sans-serif;
+  font-weight: bold;
+}
+#btnOpenDisplay{
+  top: 3px;
+  left: 3px;
+  width: 35px;
+  height: 35px;
+  margin: 3px;
+
+  background-color: black;
+  color: white;
+  opacity: 0.5;
+
+  border: hidden;
+  border-radius: 50%;
+}
+#btnOpenDisplay:hover{
+  opacity: 0.8;
+  transition: opacity 200ms ease-in;
+}
+
+
+#displaySettings{
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(5, 1fr);
+  text-align: center;
+
+  width: 70vw;
+  margin-left: 20px; /*counterDisplay's margin + border width*/
+
+  background-color: white;
+  color: black;
+
+  border-style: none inset inset inset;
+  border-color: gray;
+  border-width: 4px;
+}
+.displaySetting {
+  background-color: white;
+  border-style: none none none inset;
+  border-width: 4px;
+  border-color: gray;
+
+  transition: filter 150ms ease-in;
+}
+.displaySetting:hover{
+  filter: brightness(70%);
+}
+
+
+#counterControlsContainer{
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(6, 1fr);
+  text-align: center;
+
+  width: 70vw;
+  height: 15vh;
+  margin-left: 20px; /*counterDisplay's margin + border width*/
+
+  background-color: white;
+  color: black;
+
+  border-style: none inset inset inset;
+  border-color: gray;
+  border-width: 4px;
+}
+
+.counterControl{
+  border-style: none none none inset;
+  border-width: 4px;
+  border-color: gray;
+
+  transition: filter 150ms ease-in;
+
+  background-color: white;
+}
+.counterControl:hover{
+  filter: brightness(70%);
+}
+.counterControl:active{
+  filter: brightness(50%);
+}
+
+
+/*MESSAGE BOX*/
+#messageBox{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 20px;
+  margin-left: 20px;
+  padding: 4px 0 4px 5px;
+  width: 70vw;
+  height: 35px;
+
+  white-space: pre;
+
+  border: inset 4px;
+
+  background-color: white;
+}
+
+input{box-sizing: border-box;}
+
+#messageText{
+  width: 80%;
+  height: 100%;
+  border-style: solid;
+  border-width: 3px;
+  border-color: black;
+  padding: 2px;
+}
+
+#messageSet{
+  width: 10%;
+  height: 100%;
+  border-style: solid solid solid none;
+  border-width: 3px;
+  border-color: black;
+}
+#messageClear{
+  width: 10%;
+  height: 100%;
+  border-style: solid solid solid none;
+  border-width: 3px;
+  border-color: black;
+}
+#messageMaximize{
+  width: 10%;
+  height: 100%;
+  border-style: solid solid solid none;
+  border-width: 3px;
+  border-color: black;
+}

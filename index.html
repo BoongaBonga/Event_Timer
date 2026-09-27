@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Counter Control</title>
+
+  <link rel="stylesheet" href="Style/main/style.css">
+  <link rel="stylesheet" href="Style/main/timerList.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+  <!--Toolbar on top-->
+  <div></div>
+
+  <!--Counter Preview-->
+  <div id="counterPreview">
+    <button id="btnOpenDisplay">⇱</button>
+    <span id="counter">23:46</span>
+  </div>
+  <!--Display settings-->
+  <div id="displaySettings">
+    <button class="displaySetting" id="hide" style="border-left: none !important;">hide</button>
+    <button class="displaySetting" id="showMs">show ms</button>
+    <button class="displaySetting" id="show%" style="background-color: blue; color: white;">show %</button>
+    <button class="displaySetting" id="showEvent" style="background-color: blue; color: white;">show event</button>
+    <button class="displaySetting" id="showColor">colored</button>
+  </div>
+
+  <!--Controls-->
+  <div id="counterControlsContainer">
+    <button class="counterControl" id="pauseTimer" style="border: none !important">❚❚</button>
+    <button class="counterControl" id="subMinute">-1m</button>
+    <button class="counterControl" id="addMinute">+1m</button>
+    <button class="counterControl" id="resetTimer">Reset Timer</button>
+    <button class="counterControl" id="nextTimer">Next Timer</button>
+    <button class="counterControl" id="setNewTime">Set Time</button>
+  </div>
+  <!--Message box-->
+  <div id="messageBox">Show Message: <input type="text" id="messageText">
+    <button id="messageSet">Set</button>
+    <button id="messageClear">Clear</button>
+    <button id="messageMaximize">Maximize</button>
+  </div>
+
+  <!--Timers-->
+  <div id="timerContainer">
+    <div id="timerTopBar">
+      Scheduled timers
+      <button id="addTimer">+</button>
+    </div>
+    <div id="timerOrdering">
+      <div class="orderedTimer" draggable="true" data-id="0">
+        <span class="timerName">Timer 1</span>
+        <div class="timerButtons">
+          <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button>
+          <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Timer Editor-->
+  <div id="timerEditorContainer">
+    <span style="border-style: none none solid none; padding: 3px;">
+      Editing 
+      <input type="text" value="Timer 1" id="timerEditorTitle"></span>
+    </span>
+    <button id="closeTimerEditor" onclick="closeTimerEditor()">X</button>
+  </div>
+
+  <script src="JavaScript/constants.js"></script>
+  <script src="JavaScript/counter.js"></script>
+  <script src="JavaScript/main/timers.js"></script>
+  <script src="JavaScript/main/main.js"></script>
+</body>
+</html>
