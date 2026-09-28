@@ -5,6 +5,7 @@ const div_hide = document.getElementById("hideCounter");
 const div_progressBar = document.getElementById("progressBar");
 const el_event = document.getElementById("event");
 const el_message = document.getElementById("message");
+const el_testChar = document.getElementById("testChar");
 
 let counterHidden = false;
 let showingMs = false;
@@ -13,6 +14,7 @@ let showingEvent = true;
 let currentEvent = "Worship";
 let showingColor = true;
 let paused = false;
+let showingMessage = false;
 let maximized = false;
 
 function setMaximized(isMaximized) {
@@ -23,6 +25,24 @@ function setMaximized(isMaximized) {
     el_message.classList.remove("maximized");
     el_counter.style.display = "block";
   }
+}
+
+function setMessageFontSize() {
+  //get the volume to be filled
+  const containerRect = el_message.getBoundingClientRect();
+  const containerVolume = containerRect.width * containerRect.height;
+  //Vbox = w * h
+  //Vtext = characterCount * Vchar
+  const charRect = el_testChar.getBoundingClientRect();
+  //Vchar = height (charH * font-size) * width (charW * font-size)
+  //Vtext = Vbox <=> Vbox = characterCount * font-size² * charW * charH
+  //<=> font-size = Math.sqrt(Vbox / (characterCount * charW * charH))
+  const characterCount = el_message.textContent.length;
+  const fontSize = Math.sqrt(
+    containerVolume / (characterCount * charRect.width * charRect.height),
+  );
+
+  el_message.style.fontSize = `min(${containerRect.height}px, ${fontSize}px)`;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -117,15 +137,18 @@ channel.onmessage = (msg) => {
       break;
     }
     case "set_message": {
+      showingMessage = true;
       el_event.style.display = "none";
       el_message.style.display = "block";
       el_message.textContent = msg.data.value;
       break;
     }
     case "clear_message": {
+      showingMessage = false;
       maximized = false;
-      el_event.style.display = "block";
+      if (showingEvent) el_event.style.display = "block";
       el_message.style.display = "none";
+      el_counter.style.display = "block";
       break;
     }
     case "maximize_message": {
@@ -151,5 +174,10 @@ window.setInterval(() => {
   } else {
     counter.lastUpdate = Date.now();
   }
+
+  if (showingMessage) {
+    setMessageFontSize();
+  }
+
   displayCounter();
 }, refreshDt);

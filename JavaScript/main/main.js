@@ -24,12 +24,15 @@ function clickDispayButton(buttonElement, newValue) {
 //                            COUNTER                          //
 /////////////////////////////////////////////////////////////////
 
-let timers = [new Timer(Date.now() + 2000, 3 * 6e4)];
+let timers = [new Timer(Date.now() + 2000, Date.now() + 3 * 6e4)];
 
 let counter = new Counter();
 counter.setTime(1, 2, 3, 4);
 
 //We count down the current counter unconditionally (except while pauzed)
+function setNewTimer(timer) {
+  counter.milliseconds = timer.duration;
+}
 
 function displayCounter() {
   el_counterDisplay.textContent = counter.format_signed(showMs);
@@ -59,11 +62,26 @@ let showColor = true;
 
 el_displaySetting_hide.onclick = () => {
   displayHidden = !displayHidden;
+
   channel.postMessage({
     id: "set_hidden",
     value: displayHidden,
   });
 
+  if (displayHidden) {
+    showingMessage = false;
+    channel.postMessage({
+      id: "clear_message",
+      value: null,
+    });
+    maximized = false;
+    channel.postMessage({
+      id: "maximize_message",
+      value: maximized,
+    });
+  }
+
+  clickDispayButton(el_maximizeMsg, maximized);
   clickDispayButton(el_displaySetting_hide, displayHidden);
 };
 

@@ -2,7 +2,7 @@
   --font-size: calc((80vw / 12) / 0.6);
 
   /* Display layout */
-  --logo-bottom: calc(4% + 25vmin + 20px);
+  --logo-bottom: calc(6% + 25vmin + 20px);
   --progress-height: 16px;
   --content-side-margin: 10vw;
 }
@@ -103,6 +103,7 @@ body {
 
   left: 50%;
   width: 80vw;
+  height: calc(100vh - var(--font-size) - var(--logo-bottom) - 3*var(--progress-height));
 
   box-sizing: border-box;
 
@@ -143,7 +144,15 @@ body {
   white-space: normal;
   overflow-wrap: break-word;
 
-  border-style: none none solid none;
+  border-style: solid;
+}
+
+#testChar{
+  display: block;
+  font-size: 1px !important;
+  opacity: 0;
+  font-weight: bold;
+  font-family: 'Archivo', sans-serif;
 }
 
 /* -------------------------------------------------
@@ -168,6 +177,7 @@ body {
     - var(--progress-height)
     - 20px
   );
+  height: 100%;
 
   overflow: hidden;
 

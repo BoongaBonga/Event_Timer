@@ -1,11 +1,15 @@
 class Timer {
   constructor(startMs, endMs) {
     this.start = startMs; //Time at which timer started
-    this.end = endMs; //Duration of the timer
+    this.end = endMs; //End of the timer
+    this.duration = endMs - startMs;
   }
 }
 
-let timerCount = 1; //for timer id's
+let timerIdCount = 1; //for timer id's
+let timerCount = 1;
+
+const root = document.querySelector(":root");
 
 /////////////////////////////////////////////////////////////////
 //                      Timer Dragging                         //
@@ -58,11 +62,14 @@ el_addTimer.onclick = () => {
   let newTimer = document.createElement("div");
   newTimer.draggable = true;
   newTimer.classList.add("orderedTimer");
-  newTimer.dataset.id = timerCount++;
+  newTimer.dataset.id = timerIdCount++;
+
+  timerCount++;
+  root.style.setProperty("--timerCount", timerCount);
 
   //Add deletion buttons and stuff like that
   newTimer.innerHTML = `
-    <span class="timerName">Timer ${timerCount}</span>
+    <span class="timerName">Timer ${timerIdCount}</span>
     <div class="timerButtons"> 
       <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button> 
       <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button> 
@@ -93,6 +100,9 @@ function getListIndex(el) {
 function deleteTimer(el) {
   const timer = el.closest(".orderedTimer");
   timer.remove();
+
+  timerCount--;
+  root.style.setProperty("--timerCount", timerCount);
 }
 
 const timerEditor = document.getElementById("timerEditorContainer");
@@ -124,3 +134,11 @@ const el_timerEditorTitle = document.getElementById("timerEditorTitle");
 el_timerEditorTitle.addEventListener("input", () => {
   editingNameSpan.textContent = el_timerEditorTitle.value;
 });
+
+//////////////////////////////////////////////////////////
+//                     Responsive design                //
+//////////////////////////////////////////////////////////
+window.setInterval(() => {
+  const timerBox = document.querySelector(".orderedTimer").getBoundingClientRect();
+  root.style.setProperty("--timerHeight", timerBox.height + "px");
+}, 200);

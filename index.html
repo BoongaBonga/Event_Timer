@@ -52,12 +52,20 @@
       Scheduled timers
       <button id="addTimer">+</button>
     </div>
-    <div id="timerOrdering">
-      <div class="orderedTimer" draggable="true" data-id="0">
-        <span class="timerName">Timer 1</span>
-        <div class="timerButtons">
-          <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button>
-          <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button>
+
+    <div id="timerOrderingContainer">
+      <div id="timeFlowContainer">
+
+      </div>
+
+      <div id="timerOrdering">
+        <!--Example timer-->
+        <div class="orderedTimer" draggable="true" data-id="0">
+          <span class="timerName">Timer 1</span>
+          <div class="timerButtons">
+            <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button>
+            <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button>
+          </div>
         </div>
       </div>
     </div>
