@@ -24,15 +24,8 @@ function clickDispayButton(buttonElement, newValue) {
 //                            COUNTER                          //
 /////////////////////////////////////////////////////////////////
 
-let timers = [new Timer(Date.now() + 2000, Date.now() + 3 * 6e4)];
-
 let counter = new Counter();
 counter.setTime(1, 2, 3, 4);
-
-//We count down the current counter unconditionally (except while pauzed)
-function setNewTimer(timer) {
-  counter.milliseconds = timer.duration;
-}
 
 function displayCounter() {
   el_counterDisplay.textContent = counter.format_signed(showMs);

@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="Style/main/style.css">
   <link rel="stylesheet" href="Style/main/timerList.css">
 
+  <link rel="shortcut icon" href="/Images/favicon.ico">
+  <link rel="icon" href="Images/favicon_gif.gif" type="image/gif" >
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -54,15 +57,13 @@
     </div>
 
     <div id="timerOrderingContainer">
-      <div id="timeFlowContainer">
-
-      </div>
-
       <div id="timerOrdering">
         <!--Example timer-->
         <div class="orderedTimer" draggable="true" data-id="0">
           <span class="timerName">Timer 1</span>
+          <span class="timerTime">5m</span>
           <div class="timerButtons">
+            <button class="timerStartBtn timerSetting" onclick="startTimer(this)">▶</button>
             <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button>
             <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button>
           </div>
@@ -78,6 +79,10 @@
       <input type="text" value="Timer 1" id="timerEditorTitle"></span>
     </span>
     <button id="closeTimerEditor" onclick="closeTimerEditor()">X</button>
+
+    <span style="margin-top: 20px;">
+      Duration: <input type="time" value="00:05:00" step="5" id="timerEditorDuration">
+    </span>
   </div>
 
   <script src="JavaScript/constants.js"></script>
