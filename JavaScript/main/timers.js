@@ -1,21 +1,83 @@
 class Timer {
-  constructor(duration, start) {
+  constructor(name, duration, start) {
     this.start = start; //Time at which timer started
     this.duration = duration;
+    this.name = name;
   }
 }
 
 class TimeMaster {
   constructor() {
-    this.currentTimer = 0;
-    this.timers = {0: new Timer(3e5, null)};
+    this.currentTimer = 0; //Index of orderedTimers
+    this.orderedTimerIds = [0]; //maps the order to the id
+    this.timers = {0: new Timer("Timer 1", 3e5, null)}; //maps the id to a timer
+    this.timerCount = 1;
+  }
+
+  /**
+   * Adds a new timer to the TimeMaster
+   * @param {Timer} timer the timer to add
+   * @param {Number} id the id of the timer's "owner"
+   * @returns the last timerCount before adding
+   */
+  pushTimer(timer, id) {
+    this.orderedTimerIds.push(id);
+    this.timers[id] = timer;
+    return this.timerCount++;
+  }
+
+  deleteTimer(id) {
+    delete this.timers[id];
+    this.orderedTimerIds.splice(this.getIndexOf(id), 1);
+    return this.timerCount--;
+  }
+
+  /**
+   * Shifts a timer's position
+   * @param {Number} oldIndex old position
+   * @param {Number} newIndex new position
+   */
+  shiftTimers(oldIndex, newIndex) {
+    if (newIndex == oldIndex) return;
+
+    const deletedTimer = this.orderedTimerIds.splice(oldIndex, 1)[0];
+    if (newIndex > oldIndex) this.orderedTimerIds.splice(newIndex - 1, 0, deletedTimer);
+    else this.orderedTimerIds.splice(newIndex, 0, deletedTimer);
+  }
+
+  getTimer(index) {
+    return this.timers[this.orderedTimerIds[index]];
+  }
+
+  getIndexOf(id) {
+    const result = this.orderedTimerIds.indexOf(id);
+    if (result == -1) console.error("the index of an element could not be found");
+    else return result;
+  }
+
+  getTimerFromId(id) {
+    return this.timers[this.getIndexOf(id)];
+  }
+
+  setNewTimer(index) {
+    if (this.timerCount <= index) return false;
+    this.currentTimer = index;
+    counter.milliseconds = this.getTimer(index).duration;
+    return true;
+  }
+
+  setNextTimer() {
+    return this.setNewTimer(this.currentTimer++);
+  }
+
+  resetCurrentTimer() {
+    return this.setNewTimer(this.currentTimer);
   }
 }
 
 let timeMaster = new TimeMaster();
 
 let timerIdCount = 1; //for timer id's
-let timerCount = 1;
 
 const root = document.querySelector(":root");
 
@@ -26,17 +88,23 @@ const root = document.querySelector(":root");
 const list = document.querySelector("#timerOrdering");
 let draggingItem = null;
 
-list.querySelectorAll(".orderedTimer").forEach((item) => {
-  item.addEventListener("dragstart", () => {
-    draggingItem = item;
-    // Delay adding the class so the drag "ghost image" retains full opacity
-    setTimeout(() => item.classList.add("dragging"), 0);
-  });
+list.addEventListener("dragstart", (e) => {
+  const item = e.target.closest(".orderedTimer");
+  if (!item) return;
+  draggingItem = item;
+  setTimeout(() => item.classList.add("dragging"), 0);
+});
 
-  item.addEventListener("dragend", () => {
-    draggingItem = null;
-    item.classList.remove("dragging");
-  });
+list.addEventListener("dragend", (e) => {
+  const item = e.target.closest(".orderedTimer");
+  if (!item) return;
+
+  item.classList.remove("dragging");
+  draggingItem = null;
+
+  timeMaster.orderedTimerIds = Array.from(list.children).map((child) =>
+    Number(child.dataset.id),
+  );
 });
 
 list.addEventListener("dragover", (e) => {
@@ -45,7 +113,7 @@ list.addEventListener("dragover", (e) => {
   //Find closest item to cursor (the [...] forces it into an array from a nodelist)
   const siblings = [...list.querySelectorAll(".orderedTimer:not(.dragging)")];
 
-  const nextSibling = siblings.find((sibling) => {
+  nextSibling = siblings.find((sibling) => {
     const box = sibling.getBoundingClientRect();
     //check if cursor is above vertical midpoint of sibling
     return e.clientY <= box.top + box.height / 2;
@@ -63,6 +131,12 @@ list.addEventListener("dragover", (e) => {
 //                      Event Handlers                         //
 /////////////////////////////////////////////////////////////////
 
+//Next timer
+const el_nextTimer = document.getElementById("nextTimer");
+el_nextTimer.onclick = () => {
+  //idk
+};
+
 //Add timer
 const el_addTimer = document.getElementById("addTimer");
 el_addTimer.onclick = () => {
@@ -70,12 +144,13 @@ el_addTimer.onclick = () => {
   let newTimer = document.createElement("div");
   newTimer.draggable = true;
   newTimer.classList.add("orderedTimer");
-  newTimer.dataset.id = timerIdCount++;
 
-  timeMaster.timers[newTimer.dataset.id] = new Timer(5 * 6e4, null);
+  const timerID = timerIdCount++;
+  newTimer.dataset.id = timerID;
 
-  timerCount++;
-  root.style.setProperty("--timerCount", timerCount);
+  timeMaster.pushTimer(new Timer(`Timer ${timerID}`, 3e5, null), timerID);
+
+  root.style.setProperty("--timerCount", timeMaster.timerCount);
 
   //Add deletion buttons and stuff like that
   newTimer.innerHTML = `
@@ -86,18 +161,6 @@ el_addTimer.onclick = () => {
       <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button> 
       <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button> 
     </div>`;
-
-  //event listeners for dragging
-  newTimer.addEventListener("dragstart", () => {
-    draggingItem = newTimer;
-    // Delay adding the class so the drag "ghost image" retains full opacity
-    setTimeout(() => newTimer.classList.add("dragging"), 0);
-  });
-
-  newTimer.addEventListener("dragend", () => {
-    draggingItem = null;
-    newTimer.classList.remove("dragging");
-  });
 
   list.appendChild(newTimer);
 };
@@ -111,17 +174,16 @@ function getListIndex(el) {
 //delete this timer
 function deleteTimer(el) {
   const timer = el.closest(".orderedTimer");
-  delete timeMaster.timers[timer.dataset.id];
+  timeMaster.deleteTimer(Number(timer.dataset.id));
   timer.remove();
 
-  timerCount--;
-  root.style.setProperty("--timerCount", timerCount);
+  root.style.setProperty("--timerCount", timeMaster.timerCount);
 }
 
 //Start this timer
 function startTimer(el) {
   const timer = el.closest(".orderedTimer");
-  counter.milliseconds = timeMaster.timers[timer.dataset.id].duration;
+  timeMaster.setNewTimer(timeMaster.getIndexOf(Number(timer.dataset.id)));
 }
 window.startTimer = startTimer;
 
@@ -184,7 +246,7 @@ el_timerEditorDuration.addEventListener("input", () => {
   if (s == undefined) s = 0;
 
   //change the timer
-  timeMaster.timers[editingTimerId].duration = h * 36e5 + m * 6e4 + s * 1e3;
+  timeMaster.getTimerFromId(editingTimerId).duration = h * 36e5 + m * 6e4 + s * 1e3;
   editingTimer.children[1].textContent = formatTime(h, m, s);
 });
 

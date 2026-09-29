@@ -123,7 +123,6 @@ const el_pauseTimer = document.getElementById("pauseTimer");
 const el_addMinute = document.getElementById("addMinute");
 const el_subMinute = document.getElementById("subMinute");
 const el_resetTimer = document.getElementById("resetTimer");
-const el_nextTimer = document.getElementById("nextTimer");
 const el_setNewTime = document.getElementById("setNewTime");
 
 let paused = false;
