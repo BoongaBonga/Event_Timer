@@ -98,6 +98,12 @@ channel.onmessage = (msg) => {
       counter.finished = msg.data.value.finished;
       break;
     }
+    case "new_timer": {
+      el_event.textContent = msg.data.value.name;
+      counter.milliseconds = msg.data.value.duration;
+      counter.finished = false;
+      break;
+    }
     case "set_hidden": {
       counterHidden = msg.data.value;
 
@@ -125,7 +131,7 @@ channel.onmessage = (msg) => {
     }
     case "set_show_event": {
       showingEvent = msg.data.value;
-      if (showingEvent) {
+      if (showingEvent && !showingMessage) {
         el_event.style.display = "block";
       } else {
         el_event.style.display = "none";

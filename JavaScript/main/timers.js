@@ -14,6 +14,23 @@ class TimeMaster {
     this.timerCount = 1;
   }
 
+  setCurrentTimerClass() {
+    const id = this.orderedTimerIds[this.currentTimer];
+    const timerElement = list.querySelector(`[data-id="${id}"]`);
+
+    if (timerElement) {
+      timerElement.classList.add("currentTimer");
+    }
+  }
+  clearCurrentTimerClass() {
+    const id = this.orderedTimerIds[this.currentTimer];
+    const timerElement = list.querySelector(`[data-id="${id}"]`);
+
+    if (timerElement) {
+      timerElement.classList.remove("currentTimer");
+    }
+  }
+
   /**
    * Adds a new timer to the TimeMaster
    * @param {Timer} timer the timer to add
@@ -39,6 +56,7 @@ class TimeMaster {
    */
   shiftTimers(oldIndex, newIndex) {
     if (newIndex == oldIndex) return;
+    if (oldIndex == this.currentTimer) this.currentTimer = newIndex;
 
     const deletedTimer = this.orderedTimerIds.splice(oldIndex, 1)[0];
     if (newIndex > oldIndex) this.orderedTimerIds.splice(newIndex - 1, 0, deletedTimer);
@@ -56,18 +74,30 @@ class TimeMaster {
   }
 
   getTimerFromId(id) {
-    return this.timers[this.getIndexOf(id)];
+    return this.timers[id];
+  }
+
+  getCurrentTimer() {
+    return this.timers[this.orderedTimerIds[this.currentTimer]];
   }
 
   setNewTimer(index) {
     if (this.timerCount <= index) return false;
+    this.clearCurrentTimerClass();
     this.currentTimer = index;
+    this.setCurrentTimerClass();
     counter.milliseconds = this.getTimer(index).duration;
+
+    channel.postMessage({
+      id: "new_timer",
+      value: this.getCurrentTimer(),
+    });
     return true;
   }
 
   setNextTimer() {
-    return this.setNewTimer(this.currentTimer++);
+    if (this.timerCount <= this.currentTimer) return false;
+    return this.setNewTimer(this.currentTimer + 1);
   }
 
   resetCurrentTimer() {
@@ -102,9 +132,11 @@ list.addEventListener("dragend", (e) => {
   item.classList.remove("dragging");
   draggingItem = null;
 
+  timeMaster.clearCurrentTimerClass();
   timeMaster.orderedTimerIds = Array.from(list.children).map((child) =>
     Number(child.dataset.id),
   );
+  timeMaster.setCurrentTimerClass();
 });
 
 list.addEventListener("dragover", (e) => {
@@ -134,7 +166,12 @@ list.addEventListener("dragover", (e) => {
 //Next timer
 const el_nextTimer = document.getElementById("nextTimer");
 el_nextTimer.onclick = () => {
-  //idk
+  timeMaster.setNextTimer();
+};
+
+const el_resetTimer = document.getElementById("resetTimer");
+el_resetTimer.onclick = () => {
+  timeMaster.resetCurrentTimer();
 };
 
 //Add timer
@@ -145,16 +182,17 @@ el_addTimer.onclick = () => {
   newTimer.draggable = true;
   newTimer.classList.add("orderedTimer");
 
+  //Start out at 0 (which is the default timer) and then increment
   const timerID = timerIdCount++;
   newTimer.dataset.id = timerID;
 
-  timeMaster.pushTimer(new Timer(`Timer ${timerID}`, 3e5, null), timerID);
+  timeMaster.pushTimer(new Timer(`Timer ${timerID + 1}`, 3e5, null), timerID);
 
   root.style.setProperty("--timerCount", timeMaster.timerCount);
 
   //Add deletion buttons and stuff like that
   newTimer.innerHTML = `
-    <span class="timerName">Timer ${timerIdCount}</span>
+    <span class="timerName">Timer ${timerID + 1}</span>
     <span class="timerTime">5m</span>
     <div class="timerButtons"> 
       <button class="timerStartBtn timerSetting" onclick="startTimer(this)">▶</button>
@@ -195,14 +233,27 @@ let editingTimerId = null;
 let editingTimer = null;
 let editingNameSpan = null;
 
+function formatToTimeValue(ms) {
+  return (
+    String(Math.floor(ms / 36e5)).padStart(2, "0") +
+    ":" +
+    String(Math.floor(ms / 6e4) % 60).padStart(2, "0") +
+    ":" +
+    String(Math.floor(ms / 1e3) % 60).padStart(2, "0")
+  );
+}
+
 //Edit this timer
 function openTimerEditor(el) {
   editingTimer = el.closest(".orderedTimer");
-  editingTimerId = editingTimer.dataset.id;
+  editingTimerId = Number(editingTimer.dataset.id);
   editingNameSpan = el.parentNode.parentNode.children[0];
 
   timerEditor.style.display = "flex";
   timerEditorTitle.value = editingNameSpan.textContent;
+
+  const duration = timeMaster.getTimerFromId(editingTimerId).duration;
+  el_timerEditorDuration.value = formatToTimeValue(duration);
 }
 
 //close timer editor
@@ -231,22 +282,32 @@ function formatTime(h, m, s) {
 const el_timerEditorTitle = document.getElementById("timerEditorTitle");
 el_timerEditorTitle.addEventListener("input", () => {
   editingNameSpan.textContent = el_timerEditorTitle.value;
+  timeMaster.getTimerFromId(editingTimerId).name = el_timerEditorTitle.value;
 });
 
 const el_timerEditorDuration = document.getElementById("timerEditorDuration");
 el_timerEditorDuration.addEventListener("input", () => {
-  console.log("input");
-  const newTimes = el_timerEditorDuration.value.split(":");
-  let h = Number(newTimes[0]);
-  let m = Number(newTimes[1]);
-  let s = Number(newTimes[2]);
+  const value = el_timerEditorDuration.value;
+  if (!value) return;
 
-  if (h == undefined) h = 0;
-  if (m == undefined) h = 0;
-  if (s == undefined) s = 0;
+  const newTimes = value.split(":");
+  let h = 0;
+  let m = 0;
+  let s = 0;
+
+  if (newTimes.length === 3) {
+    h = Number(newTimes[0]) || 0;
+    m = Number(newTimes[1]) || 0;
+    s = Number(newTimes[2]) || 0;
+  } else if (newTimes.length === 2) {
+    // If the browser omits seconds, treat it as hours:minutes
+    h = Number(newTimes[0]) || 0;
+    m = Number(newTimes[1]) || 0;
+  }
 
   //change the timer
-  timeMaster.getTimerFromId(editingTimerId).duration = h * 36e5 + m * 6e4 + s * 1e3;
+  const currentTimer = timeMaster.getTimerFromId(editingTimerId);
+  currentTimer.duration = h * 36e5 + m * 6e4 + s * 1e3;
   editingTimer.children[1].textContent = formatTime(h, m, s);
 });
 

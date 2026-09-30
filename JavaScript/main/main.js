@@ -122,7 +122,6 @@ el_displaySetting_show_color.onclick = () => {
 const el_pauseTimer = document.getElementById("pauseTimer");
 const el_addMinute = document.getElementById("addMinute");
 const el_subMinute = document.getElementById("subMinute");
-const el_resetTimer = document.getElementById("resetTimer");
 const el_setNewTime = document.getElementById("setNewTime");
 
 let paused = false;
@@ -206,8 +205,6 @@ el_maximizeMsg.onclick = () => {
 /////////////////////////////////////////////////////////////////
 //                         Broadcasting                        //
 /////////////////////////////////////////////////////////////////
-
-const channel = new BroadcastChannel("display");
 
 function syncDisplayTimer() {
   channel.postMessage({
