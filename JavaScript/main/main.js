@@ -288,12 +288,13 @@ function updateUI() {
     const timerID = timeMaster.orderedTimerIds[i];
     newTimer.dataset.id = timerID;
 
-    const timerDuration = timeMaster.timers[timerID].duration;
+    const timer = timeMaster.timers[timerID];
+    const timerDuration = timer.duration;
     const durationTime = getTimeFromMs(timerDuration);
     const timerTime = formatTime(durationTime.h, durationTime.m, durationTime.s);
 
     newTimer.innerHTML = `
-    <span class="timerName">Timer ${timerID + 1}</span>
+    <span class="timerName">${timer.name}</span>
     <span class="timerTime">${timerTime}</span>
     <div class="timerButtons"> 
       <button class="timerStartBtn timerSetting" onclick="startTimer(this)">▶</button>
