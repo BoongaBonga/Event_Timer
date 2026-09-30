@@ -323,6 +323,7 @@ const cover = document.getElementById("cover");
 
 function load() {
   const save = localStorage.getItem("Event_Timer_Save");
+  cover.style.opacity = 0;
   if (!save) return;
 
   //wait until the other things have loaded in
@@ -330,7 +331,6 @@ function load() {
     loadSave(JSON.parse(save));
     updateUI();
     updateDisplay();
-    cover.style.opacity = 0;
   }, 50);
 }
 
