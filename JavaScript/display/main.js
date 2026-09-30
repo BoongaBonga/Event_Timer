@@ -144,9 +144,13 @@ channel.onmessage = (msg) => {
       if (counterHidden) {
         div_show.style.display = "none";
         div_hide.style.display = "block";
+        el_event.style.top = "calc(50vh + 13vmin)";
+        el_event.style.fontSize = "15vmin";
       } else {
         div_show.style.display = "block";
         div_hide.style.display = "none";
+        el_event.style.top = "calc(var(--logo-bottom) + var(--font-size) + 2vh)";
+        el_event.style.fontSize = "calc(var(--font-size) / 10 * 3)";
       }
       break;
     }
