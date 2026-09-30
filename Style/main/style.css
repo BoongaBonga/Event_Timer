@@ -11,6 +11,23 @@ body {
 }
 
 
+#cover {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+
+  background-color: rgb(30, 30, 30);
+
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1s ease-in;
+}
+
+
 /*COUNTER PREVIEW*/
 #counterPreview{
   display: flex;

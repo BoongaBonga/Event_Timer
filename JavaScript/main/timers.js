@@ -45,7 +45,9 @@ class TimeMaster {
 
   deleteTimer(id) {
     delete this.timers[id];
-    this.orderedTimerIds.splice(this.getIndexOf(id), 1);
+    const index = this.getIndexOf(id);
+    this.orderedTimerIds.splice(index, 1);
+    if (index == this.currentTimer) this.setCurrentTimerClass();
     return this.timerCount--;
   }
 
@@ -232,6 +234,14 @@ const timerEditorTitle = document.getElementById("timerEditorTitle");
 let editingTimerId = null;
 let editingTimer = null;
 let editingNameSpan = null;
+
+function getTimeFromMs(ms) {
+  return {
+    h: Math.floor(ms / 36e5),
+    m: Math.floor(ms / 6e4) % 60,
+    s: Math.floor(ms / 1e3) % 60,
+  };
+}
 
 function formatToTimeValue(ms) {
   return (

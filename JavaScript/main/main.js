@@ -25,7 +25,7 @@ function clickDispayButton(buttonElement, newValue) {
 /////////////////////////////////////////////////////////////////
 
 let counter = new Counter();
-counter.setTime(1, 2, 3, 4);
+counter.setTime(0, 5, 0, 0);
 
 function displayCounter() {
   el_counterDisplay.textContent = counter.format_signed(showMs);
@@ -168,9 +168,11 @@ const el_maximizeMsg = document.getElementById("messageMaximize");
 
 let maximized = false;
 let showingMessage = false;
+let messageText = null;
 
 el_setMsg.onclick = () => {
   showingMessage = true;
+  messageText = el_messageText.value;
   channel.postMessage({
     id: "set_message",
     value: el_messageText.value,
@@ -179,6 +181,7 @@ el_setMsg.onclick = () => {
 
 el_clearMsg.onclick = () => {
   showingMessage = false;
+  messageText = null;
   maximized = false;
   clickDispayButton(el_maximizeMsg, maximized);
   channel.postMessage({
@@ -192,7 +195,7 @@ el_clearMsg.onclick = () => {
 };
 
 el_maximizeMsg.onclick = () => {
-  if (!showingMessage) return;
+  if (!showingMessage || displayHidden) return;
   maximized = !maximized;
   channel.postMessage({
     id: "maximize_message",
@@ -216,6 +219,121 @@ function syncDisplayTimer() {
   });
 }
 
+channel.onmessage = (msg) => {
+  if (msg.data == "request_update") updateDisplay();
+};
+
+/////////////////////////////////////////////////////////////////
+//                       SAVING & LOADING                      //
+/////////////////////////////////////////////////////////////////
+
+function loadAs(obj, Class) {
+  Object.setPrototypeOf(obj, Class);
+}
+
+function getSave() {
+  return {
+    counter: counter,
+    timeMaster: timeMaster,
+    timerIdCount: timerIdCount,
+    displayHidden: displayHidden,
+    showMs: showMs,
+    showPercent: showPercent,
+    showEvent: showEvent,
+    showColor: showColor,
+    paused: paused,
+    maximized: maximized,
+    showingMessage: showingMessage,
+    messageText: messageText,
+  };
+}
+function loadSave(save) {
+  counter = save.counter;
+  loadAs(counter, Counter.prototype);
+  timeMaster = save.timeMaster;
+  loadAs(timeMaster, TimeMaster.prototype);
+
+  timerIdCount = save.timerIdCount;
+  displayHidden = save.displayHidden;
+  showMs = save.showMs;
+  showPercent = save.showPercent;
+  showEvent = save.showEvent;
+  showColor = save.showColor;
+  paused = save.paused;
+  maximized = save.maximized;
+  showingMessage = save.showingMessage;
+  messageText = save.messageText;
+}
+
+function save() {
+  localStorage.setItem("Event_Timer_Save", JSON.stringify(getSave()));
+}
+
+function updateUI() {
+  if (paused) el_pauseTimer.textContent = "▶";
+  clickDispayButton(el_displaySetting_hide, displayHidden);
+  clickDispayButton(el_displaySetting_show_ms, showMs);
+  clickDispayButton(el_displaySetting_show_percent, showPercent);
+  clickDispayButton(el_displaySetting_show_event, showEvent);
+  clickDispayButton(el_displaySetting_show_color, showColor);
+  clickDispayButton(el_maximizeMsg, maximized);
+
+  //Get timeMaster working again
+  list.innerHTML = "";
+  for (let i = 0; i < timeMaster.timerCount; i++) {
+    let newTimer = document.createElement("div");
+    newTimer.draggable = true;
+    newTimer.classList.add("orderedTimer");
+
+    const timerID = timeMaster.orderedTimerIds[i];
+    newTimer.dataset.id = timerID;
+
+    const timerDuration = timeMaster.timers[timerID].duration;
+    const durationTime = getTimeFromMs(timerDuration);
+    const timerTime = formatTime(durationTime.h, durationTime.m, durationTime.s);
+
+    newTimer.innerHTML = `
+    <span class="timerName">Timer ${timerID + 1}</span>
+    <span class="timerTime">${timerTime}</span>
+    <div class="timerButtons"> 
+      <button class="timerStartBtn timerSetting" onclick="startTimer(this)">▶</button>
+      <button class="timerEditBtn timerSetting" onclick="openTimerEditor(this)">✎</button> 
+      <button class="timerDeleteBtn timerSetting" onclick="deleteTimer(this)"><img class="timerDeleteIcon" src="Images/bin.png"></button> 
+    </div>`;
+
+    list.appendChild(newTimer);
+  }
+  root.style.setProperty("--timerCount", timeMaster.timerCount);
+}
+
+function updateDisplay() {
+  channel.postMessage({id: "new_time", value: counter});
+  channel.postMessage({id: "new_timer", value: timeMaster.getCurrentTimer()});
+  channel.postMessage({id: "set_hidden", value: displayHidden});
+  channel.postMessage({id: "set_show_ms", value: showMs});
+  channel.postMessage({id: "set_show_percent", value: showPercent});
+  channel.postMessage({id: "set_show_event", value: showEvent});
+  channel.postMessage({id: "set_show_color", value: showColor});
+  if (showingMessage) channel.postMessage({id: "set_message", value: messageText});
+  if (showingMessage) channel.postMessage({id: "maximize_message", value: maximized});
+  channel.postMessage({id: "pause", value: paused});
+}
+
+const cover = document.getElementById("cover");
+
+function load() {
+  const save = localStorage.getItem("Event_Timer_Save");
+  if (!save) return;
+
+  //wait until the other things have loaded in
+  window.setTimeout(() => {
+    loadSave(JSON.parse(save));
+    updateUI();
+    updateDisplay();
+    cover.style.opacity = 0;
+  }, 50);
+}
+
 /////////////////////////////////////////////////////////////////
 //                          MAIN LOOP                          //
 /////////////////////////////////////////////////////////////////
@@ -231,4 +349,5 @@ window.setInterval(() => {
 
 window.setInterval(() => {
   syncDisplayTimer();
+  save();
 }, 500);

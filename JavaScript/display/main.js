@@ -17,6 +17,8 @@ let paused = false;
 let showingMessage = false;
 let maximized = false;
 
+let currentTimerDuration = 3e5;
+
 function setMaximized(isMaximized) {
   if (isMaximized) {
     el_message.classList.add("maximized");
@@ -28,19 +30,29 @@ function setMaximized(isMaximized) {
 }
 
 function setMessageFontSize() {
-  //get the volume to be filled
   const containerRect = el_message.getBoundingClientRect();
-  const containerVolume = containerRect.width * containerRect.height;
-  //Vbox = w * h
-  //Vtext = characterCount * Vchar
   const charRect = el_testChar.getBoundingClientRect();
-  //Vchar = height (charH * font-size) * width (charW * font-size)
-  //Vtext = Vbox <=> Vbox = characterCount * font-size² * charW * charH
-  //<=> font-size = Math.sqrt(Vbox / (characterCount * charW * charH))
   const characterCount = el_message.textContent.length;
+
+  if (
+    characterCount === 0 ||
+    !Number.isFinite(containerRect.width) ||
+    !Number.isFinite(containerRect.height) ||
+    !Number.isFinite(charRect.width) ||
+    !Number.isFinite(charRect.height) ||
+    charRect.width <= 0 ||
+    charRect.height <= 0
+  ) {
+    return;
+  }
+
+  const containerVolume = containerRect.width * containerRect.height;
+
   const fontSize = Math.sqrt(
     containerVolume / (characterCount * charRect.width * charRect.height),
   );
+
+  if (!Number.isFinite(fontSize)) return;
 
   el_message.style.fontSize = `min(${containerRect.height}px, ${fontSize}px)`;
 }
@@ -63,23 +75,45 @@ function displayCounter() {
     if (showingColor) {
       if (counter.milliseconds > 12e4) {
         el_counter.style.color = "white";
+        div_progressBar.style.backgroundColor = "white";
       } else if (counter.milliseconds > 20e3) {
         el_counter.style.color = "yellow";
+        div_progressBar.style.backgroundColor = "yellow";
       } else {
         el_counter.style.color = "red";
+        div_progressBar.style.backgroundColor = "red";
       }
     } else {
       el_counter.style.color = "white";
+      div_progressBar.style.backgroundColor = "white";
     }
 
     //get the width of the string
     let sampleWidth = el_testCounter.getBoundingClientRect().width;
+    if (
+      !Number.isFinite(counterWidth) ||
+      !Number.isFinite(sampleWidth) ||
+      sampleWidth <= 0
+    )
+      return;
     //get the desired font size by dividing 80vw by sampleWidth
     desiredFontSize = `calc(${counterWidth}vw / ${sampleWidth})`;
 
     document
       .querySelector(":root")
       .style.setProperty("--font-size", `min(45vh, ${desiredFontSize})`);
+  }
+}
+
+function updateProgressBar() {
+  if (counter.milliseconds < 0) {
+    div_progressBar.style.width = "100vw";
+  } else {
+    if (!counter.milliseconds || !currentTimerDuration) return;
+    const barVw = 100 - (counter.milliseconds / currentTimerDuration) * 100;
+
+    if (!barVw) return;
+    div_progressBar.style.width = "clamp(" + barVw + "vw, 0vw, 100vw)";
   }
 }
 
@@ -100,7 +134,7 @@ channel.onmessage = (msg) => {
     }
     case "new_timer": {
       el_event.textContent = msg.data.value.name;
-      counter.milliseconds = msg.data.value.duration;
+      counter.milliseconds = currentTimerDuration = msg.data.value.duration;
       counter.finished = false;
       break;
     }
@@ -174,6 +208,11 @@ channel.onmessage = (msg) => {
 //                          MAIN LOOP                          //
 /////////////////////////////////////////////////////////////////
 
+function load() {
+  channel.postMessage("request_update");
+  console.log("requested_update");
+}
+
 window.setInterval(() => {
   if (!paused) {
     counter.updateCounter();
@@ -186,4 +225,5 @@ window.setInterval(() => {
   }
 
   displayCounter();
+  updateProgressBar();
 }, refreshDt);
