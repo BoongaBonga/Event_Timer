@@ -335,6 +335,11 @@ function load() {
   }, 50);
 }
 
+function reset() {
+  localStorage.removeItem("Event_Timer_Save");
+  location.reload();
+}
+
 /////////////////////////////////////////////////////////////////
 //                          MAIN LOOP                          //
 /////////////////////////////////////////////////////////////////
@@ -342,6 +347,7 @@ function load() {
 window.setInterval(() => {
   if (!paused) {
     counter.updateCounter();
+    timeMaster.updateTimers();
   } else {
     counter.lastUpdate = Date.now();
   }

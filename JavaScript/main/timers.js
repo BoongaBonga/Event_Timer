@@ -1,6 +1,23 @@
+const AutoStart = {
+  NONE: 0,
+  AT_TIME: 1,
+  AFTER_PREVIOUS: 2,
+  EITHER: 3,
+};
+
+const MS_IN_DAY = 864e5;
+
+function getMsSinceMidnight() {
+  var now = new Date();
+  var then = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  return now.getTime() - then.getTime();
+}
+
 class Timer {
-  constructor(name, duration, start) {
-    this.start = start; //Time at which timer started
+  constructor(name, duration) {
+    this.start = null; //Time at which timer will start
+    this.autoStart = AutoStart.NONE;
+    this.hasStartedToday = true;
     this.duration = duration;
     this.name = name;
   }
@@ -10,8 +27,11 @@ class TimeMaster {
   constructor() {
     this.currentTimer = 0; //Index of orderedTimers
     this.orderedTimerIds = [0]; //maps the order to the id
-    this.timers = {0: new Timer("Timer 1", 3e5, null)}; //maps the id to a timer
-    this.timerCount = 1;
+    this.timers = {0: new Timer("Timer 1", 3e5)}; //maps the id to a timer
+  }
+
+  get timerCount() {
+    return this.orderedTimerIds.length;
   }
 
   setCurrentTimerClass() {
@@ -40,7 +60,6 @@ class TimeMaster {
   pushTimer(timer, id) {
     this.orderedTimerIds.push(id);
     this.timers[id] = timer;
-    return this.timerCount++;
   }
 
   deleteTimer(id) {
@@ -48,7 +67,6 @@ class TimeMaster {
     const index = this.getIndexOf(id);
     this.orderedTimerIds.splice(index, 1);
     if (index == this.currentTimer) this.setCurrentTimerClass();
-    return this.timerCount--;
   }
 
   /**
@@ -65,7 +83,7 @@ class TimeMaster {
     else this.orderedTimerIds.splice(newIndex, 0, deletedTimer);
   }
 
-  getTimer(index) {
+  getTimerFromIndex(index) {
     return this.timers[this.orderedTimerIds[index]];
   }
 
@@ -84,11 +102,12 @@ class TimeMaster {
   }
 
   setNewTimer(index) {
-    if (this.timerCount <= index) return false;
+    if (typeof index != "number") console.error("can't assing timer to string");
+    if (this.timerCount <= index || index < 0) return false;
     this.clearCurrentTimerClass();
     this.currentTimer = index;
     this.setCurrentTimerClass();
-    counter.milliseconds = this.getTimer(index).duration;
+    counter.milliseconds = this.getTimerFromIndex(index).duration;
 
     channel.postMessage({
       id: "new_timer",
@@ -104,6 +123,48 @@ class TimeMaster {
 
   resetCurrentTimer() {
     return this.setNewTimer(this.currentTimer);
+  }
+
+  /**
+   * This function checks whether another timer needs to be started right now.
+   */
+  updateTimers() {
+    //check if the next timer's autostart is on and current timer is finished
+    if (
+      counter.finished &&
+      this.currentTimer + 1 < this.timerCount &&
+      Number(this.getTimerFromIndex(this.currentTimer + 1).autoStart) >= 2 //if autostart is on
+    ) {
+      this.setNextTimer();
+      const currentTimer = this.getCurrentTimer();
+      currentTimer.hasStartedToday = true;
+      return;
+    }
+
+    let d = new Date();
+    const timeNow = msFromTime(d.getHours(), d.getMinutes(), d.getSeconds());
+    //Loop through all the timers and check if one has a start time that's passed
+    for (let i in this.orderedTimerIds) {
+      const index = Number(i);
+      const timer = this.timers[this.orderedTimerIds[index]];
+      if (timer.autoStart == AutoStart.NONE) continue;
+
+      if (timer.hasStartedToday) {
+        //If current time is less than startTime, that means it can trigger again.
+        if (timeNow < timer.start) timer.hasStartedToday = false;
+      } else {
+        //Start a timer?
+        if (timeNow < timer.start) continue;
+        timer.hasStartedToday = true;
+        this.setNewTimer(index);
+
+        counter.milliseconds = Math.max(
+          0,
+          timer.duration - (getMsSinceMidnight() - timer.start),
+        );
+        return;
+      }
+    }
   }
 }
 
@@ -147,7 +208,7 @@ list.addEventListener("dragover", (e) => {
   //Find closest item to cursor (the [...] forces it into an array from a nodelist)
   const siblings = [...list.querySelectorAll(".orderedTimer:not(.dragging)")];
 
-  nextSibling = siblings.find((sibling) => {
+  const nextSibling = siblings.find((sibling) => {
     const box = sibling.getBoundingClientRect();
     //check if cursor is above vertical midpoint of sibling
     return e.clientY <= box.top + box.height / 2;
@@ -188,7 +249,7 @@ el_addTimer.onclick = () => {
   const timerID = timerIdCount++;
   newTimer.dataset.id = timerID;
 
-  timeMaster.pushTimer(new Timer(`Timer ${timerID + 1}`, 3e5, null), timerID);
+  timeMaster.pushTimer(new Timer(`Timer ${timerID + 1}`, 3e5), timerID);
 
   root.style.setProperty("--timerCount", timeMaster.timerCount);
 
@@ -230,8 +291,13 @@ window.startTimer = startTimer;
 //TIMER EDITOR
 const timerEditor = document.getElementById("timerEditorContainer");
 const timerEditorTitle = document.getElementById("timerEditorTitle");
+const editorAutoStart = document.getElementById("autoStartingType");
+editorAutoStart.value = "0";
+const editorStartTime = document.getElementById("timerEditorStartTime");
+const editorStartTimeContainer = document.getElementById("editorStartTimeContainer");
 
 let editingTimerId = null;
+let editingTimerElement = null;
 let editingTimer = null;
 let editingNameSpan = null;
 
@@ -243,33 +309,49 @@ function getTimeFromMs(ms) {
   };
 }
 
-function formatToTimeValue(ms) {
-  return (
+function formatToTimeValue(ms, includeSeconds) {
+  if (!ms) {
+    if (includeSeconds) return "00:00:00";
+    return "00:00";
+  }
+  let str =
     String(Math.floor(ms / 36e5)).padStart(2, "0") +
     ":" +
-    String(Math.floor(ms / 6e4) % 60).padStart(2, "0") +
-    ":" +
-    String(Math.floor(ms / 1e3) % 60).padStart(2, "0")
-  );
+    String(Math.floor(ms / 6e4) % 60).padStart(2, "0");
+  if (includeSeconds) {
+    str += ":" + String(Math.floor(ms / 1e3) % 60).padStart(2, "0");
+  }
+  return str;
 }
 
 //Edit this timer
 function openTimerEditor(el) {
-  editingTimer = el.closest(".orderedTimer");
-  editingTimerId = Number(editingTimer.dataset.id);
+  editingTimerElement = el.closest(".orderedTimer");
+  editingTimerId = Number(editingTimerElement.dataset.id);
+  editingTimer = timeMaster.timers[editingTimerId];
   editingNameSpan = el.parentNode.parentNode.children[0];
 
   timerEditor.style.display = "flex";
   timerEditorTitle.value = editingNameSpan.textContent;
+  editorStartTime.value = formatToTimeValue(editingTimer.start, false);
+  editorAutoStart.value = editingTimer.autoStart;
 
-  const duration = timeMaster.getTimerFromId(editingTimerId).duration;
-  el_timerEditorDuration.value = formatToTimeValue(duration);
+  //possibly open starttime
+  if (editorAutoStart.value == "1" || editorAutoStart.value == "3") {
+    editorStartTimeContainer.style.display = "block";
+  } else {
+    editorStartTimeContainer.style.display = "none";
+  }
+
+  const duration = editingTimer.duration;
+  el_timerEditorDuration.value = formatToTimeValue(duration, true);
 }
 
 //close timer editor
 function closeTimerEditor() {
   timerEditor.style.display = "none";
   editingTimerId = null;
+  editingTimerElement = null;
   editingTimer = null;
   editingNameSpan = null;
 }
@@ -287,6 +369,10 @@ function formatTime(h, m, s) {
     return m + "m";
   }
   return s + "s";
+}
+
+function msFromTime(h, m, s) {
+  return h * 36e5 + m * 6e4 + s * 1e3;
 }
 
 const el_timerEditorTitle = document.getElementById("timerEditorTitle");
@@ -316,9 +402,30 @@ el_timerEditorDuration.addEventListener("input", () => {
   }
 
   //change the timer
-  const currentTimer = timeMaster.getTimerFromId(editingTimerId);
-  currentTimer.duration = h * 36e5 + m * 6e4 + s * 1e3;
-  editingTimer.children[1].textContent = formatTime(h, m, s);
+  editingTimer.duration = msFromTime(h, m, s);
+  editingTimerElement.children[1].textContent = formatTime(h, m, s);
+});
+
+//Auto starting enabling
+editorAutoStart.addEventListener("input", () => {
+  editingTimer.autoStart = Number(editorAutoStart.value) || 0;
+
+  if (editorAutoStart.value == "1" || editorAutoStart.value == "3") {
+    editorStartTimeContainer.style.display = "block";
+  } else {
+    editorStartTimeContainer.style.display = "none";
+  }
+});
+
+//Auto start time
+editorStartTime.addEventListener("input", () => {
+  const value = editorStartTime.value;
+  if (!value) return;
+  const times = value.split(":");
+  const h = Number(times[0]) || 0;
+  const m = Number(times[1]) || 0;
+  editingTimer.start = msFromTime(h, m, 0);
+  //editingTimer.hasStartedToday = false;
 });
 
 //////////////////////////////////////////////////////////

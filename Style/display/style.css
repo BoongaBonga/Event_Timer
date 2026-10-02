@@ -130,6 +130,7 @@ body {
 
   /* Same vertical region as the event */
   top: calc(var(--logo-bottom) + var(--font-size) + 2vh);
+  align-content: center;
 
   transform: translateX(-50%);
 

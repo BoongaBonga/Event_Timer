@@ -1,0 +1,14 @@
+- Add time over overview
+- Add automatic timer starting at some time setting
+- Add automatic timer next setting once timer's done
+? Add clock option to just show the time
+- Add multiple ways of saving
+- Add multiple save files to choose from
+- Add customiseability to logo & color scheme
+? Make it so that setting a new time doesn't overwrite your current timer
+? Add Bible Verse showing support
+- Make help info
+- Make remote-controlled display with new url
+
+FAR FUTURE:
+? Add worship slides ?
