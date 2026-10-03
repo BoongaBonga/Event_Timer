@@ -226,6 +226,7 @@ function getSave() {
   return {
     version: VERSION,
     topicKey: topicKey,
+    DISPLAYMODE: DISPLAYMODE,
     counter: counter,
     timeMaster: timeMaster,
     timerIdCount: timerIdCount,
@@ -250,6 +251,14 @@ function loadSave(save) {
   loadAs(timeMaster, TimeMaster.prototype);
 
   topicKey = save.topicKey;
+  DISPLAYMODE = save.DISPLAYMODE;
+
+  if (DISPLAYMODE == DisplayMode.SINGLE_DEVICE) {
+    broadCastChannelConnect();
+  } else if (DISPLAYMODE == DisplayMode.CROSS_DEVICE) {
+    handleWebsocketConnect();
+  }
+
   timerIdCount = save.timerIdCount;
   displayHidden = save.displayHidden;
   showMs = save.showMs;

@@ -40,7 +40,34 @@ function webSocketConnect(topic) {
   };
 }
 
+//This function handles everything to connect once again to the websocketchannel
+function handleWebsocketConnect() {
+  DISPLAYMODE = DisplayMode.CROSS_DEVICE;
+  //give an unique url with as argument the topic of the websocket
+  if (!topicKey) {
+    topicKey = makeid(16);
+  }
+
+  const baseUrl = window.location.href.substring(
+    0,
+    window.location.href.lastIndexOf("/") + 1,
+  );
+  url = baseUrl + "display.html?connection=" + topicKey;
+
+  //show the user the url
+  urlContainer.style.display = "grid";
+  urlSpan.textContent = url;
+
+  //Try connecting
+  const topic = `VineyardEventCounter:${topicKey}`;
+  webSocketConnect(topic);
+}
+
 function broadCastChannelConnect() {
+  DISPLAYMODE = DisplayMode.SINGLE_DEVICE;
+
+  window.open("display.html", "counterDisplay", "width=800,height=600");
+
   const channel = new BroadcastChannel("EventTimerDisplay");
   channel.onmessage = (event) => {
     if (event.data === "request_update" || event.data?.data === "request_update") {
@@ -55,6 +82,10 @@ function broadCastChannelConnect() {
 
   updateDisplay();
 }
+
+/////////////////////////////////////////////////////////////////
+//                      Event Handlers                         //
+/////////////////////////////////////////////////////////////////
 
 //Function for making a custom topic
 function makeid(length) {
@@ -78,9 +109,6 @@ document.getElementById("cancelDeviceButton").onclick = () => {
 };
 
 document.getElementById("singleDeviceButton").onclick = () => {
-  DISPLAYMODE = DisplayMode.SINGLE_DEVICE;
-
-  window.open("display.html", "counterDisplay", "width=800,height=600");
   el_deviceOptions.style.display = "none";
   urlContainer.style.display = "none";
   broadCastChannelConnect();
@@ -90,25 +118,7 @@ const urlContainer = document.getElementById("displayUrlContainer");
 const urlSpan = document.getElementById("displayUrl");
 
 document.getElementById("crossDeviceButton").onclick = () => {
-  DISPLAYMODE = DisplayMode.CROSS_DEVICE;
-  //give an unique url with as argument the topic of the websocket
-  if (!topicKey) {
-    topicKey = makeid(16);
-  }
-
-  const baseUrl = window.location.href.substring(
-    0,
-    window.location.href.lastIndexOf("/") + 1,
-  );
-  url = baseUrl + "display.html?connection=" + topicKey;
-
-  //Show the user the url
-  urlContainer.style.display = "grid";
-  urlSpan.textContent = url;
-
-  //Try connecting
-  const topic = `VineyardEventCounter:${topicKey}`;
-  webSocketConnect(topic);
+  handleWebsocketConnect();
 };
 
 urlSpan.addEventListener("click", () => {
