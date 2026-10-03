@@ -2,8 +2,10 @@
   --font-size: calc((80vw / 12) / 0.6);
 
   /* Display layout */
-  --logo-bottom: calc(4% + 25vmin + 20px);
-  --progress-height: 16px;
+  --logo-bottom: calc(4% + 26vmin + 20px);
+  --counter-bottom: calc(var(--logo-bottom) + 37.5vh + 4vh);
+
+  --progress-height: 1.5vh;
   --content-side-margin: 10vw;
 }
 
@@ -40,9 +42,14 @@ body {
   /* Counter sits below the logo */
   top: calc(var(--logo-bottom));
 
+  height: 37.5vh;
+  width: 80vw;
+
   left: 50%;
   transform: translateX(-50%);
 
+  align-content: center;
+  text-align: center;
   font-family: 'Archivo', sans-serif;
   font-weight: bold;
   font-size: var(--font-size);
@@ -71,7 +78,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
 
-  border: solid;
+  border: solid 0.5vmin;
   border-radius: 50%;
   padding: 10px;
 
@@ -86,7 +93,7 @@ body {
   left: 50%;
   transform: translate(-50%, -80%);
 
-  border: solid;
+  border: solid 0.5vmin;
   border-radius: 50%;
   padding: 10px;
 
@@ -103,7 +110,8 @@ body {
 
   left: 50%;
   width: 80vw;
-  height: calc(100vh - var(--font-size) - var(--logo-bottom) - 3*var(--progress-height));
+  top: var(--counter-bottom);
+  height: calc(100vh - var(--counter-bottom) - 2*var(--progress-height));
 
   box-sizing: border-box;
 
@@ -114,11 +122,14 @@ body {
   max-width: 80vw;
 }
 
+#testEvent {
+  font-family: 'Archivo', sans-serif;
+  font-size: 1px;
+  opacity: 0;
+}
 #event {
+  align-content: start;
   display: block;
-
-  /* This is below the counter */
-  top: calc(var(--logo-bottom) + var(--font-size) + 2vh);
 
   transform: translateX(-50%);
 
@@ -128,8 +139,6 @@ body {
 #message {
   display: none;
 
-  /* Same vertical region as the event */
-  top: calc(var(--logo-bottom) + var(--font-size) + 2vh);
   align-content: center;
 
   transform: translateX(-50%);

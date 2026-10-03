@@ -56,6 +56,8 @@ window.setInterval(() => {
 window.setInterval(() => {
   if (showingMessage) {
     setMessageFontSize();
+  } else {
+    setEventFontSize();
   }
   setCounterFontSize();
 }, 200);

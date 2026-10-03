@@ -4,6 +4,7 @@ const div_show = document.getElementById("showCounter");
 const div_hide = document.getElementById("hideCounter");
 const div_progressBar = document.getElementById("progressBar");
 const el_event = document.getElementById("event");
+const el_testEvent = document.getElementById("testEvent");
 const el_message = document.getElementById("message");
 const el_testChar = document.getElementById("testChar");
 const root = document.querySelector(":root");
@@ -36,6 +37,14 @@ function setMessageFontSize() {
   el_message.style.fontSize = `min(${containerRect.height}px, ${fontSize}px)`;
 }
 
+function setEventFontSize() {
+  const testWidth = el_testEvent.getBoundingClientRect().width;
+  const eventRect = el_event.getBoundingClientRect();
+
+  el_event.style.fontSize =
+    Math.min(0.8 * eventRect.height, (eventRect.width / testWidth) * 0.8) + "px";
+}
+
 function setCounterFontSize() {
   if (maximized) return;
 
@@ -47,8 +56,6 @@ function setCounterFontSize() {
     return;
   //get the desired font size by dividing 80vw by sampleWidth
   desiredFontSize = `calc(${counterWidth}vw / ${sampleWidth})`;
-
-  //Check if with that font size the message/Event can still appear on screen
 
   root.style.setProperty("--font-size", `min(45vh, ${desiredFontSize})`);
 }
