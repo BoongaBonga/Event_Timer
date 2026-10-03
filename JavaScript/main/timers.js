@@ -70,8 +70,7 @@ class TimeMaster {
 
     //shift the current timer if it was at the end to prevent edgecases
     if (this.currentTimer >= this.timerCount) this.currentTimer = this.timerCount - 1;
-
-    if (index < this.currentTimer) this.currentTimer--;
+    else if (index < this.currentTimer) this.currentTimer--;
     this.setCurrentTimerClass();
   }
 
