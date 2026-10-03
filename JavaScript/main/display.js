@@ -24,7 +24,6 @@ function webSocketConnect(topic) {
   client.on("message", (receivedTopic, message) => {
     const raw = message.toString();
 
-    console.log("received message: " + raw);
     if (raw === "request_update") {
       updateDisplay();
     }

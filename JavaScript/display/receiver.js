@@ -1,5 +1,4 @@
 function handleMessage(msg) {
-  console.log("handling message" + typeof msg + ", id: " + typeof msg.id);
   if (!msg || typeof msg !== "object" || !msg.id) return;
 
   console.log(msg.id);
@@ -104,8 +103,6 @@ function webSocketConnect(topicKey) {
   client.on("message", (receivedTopic, message) => {
     const raw = message.toString();
 
-    //console.log("Received message: " + raw);
-
     // Ignore plain text commands like 'request_update' sent by clients
     if (raw === "request_update") {
       return;
@@ -113,7 +110,6 @@ function webSocketConnect(topicKey) {
 
     try {
       const parsed = JSON.parse(raw);
-      console.log(parsed);
       //make an object of it so it works the same as broadcastchannel
       handleMessage(parsed);
     } catch (e) {
