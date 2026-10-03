@@ -1,7 +1,7 @@
 function handleMessage(msg) {
   if (!msg || typeof msg !== "object" || !msg.id) return;
 
-  console.log(CommandType[msg.id]);
+  console.log(msg.id);
   switch (msg.id) {
     case CommandType.NEW_TIME: {
       //set this counter to be synced with the main one.

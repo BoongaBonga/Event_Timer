@@ -373,3 +373,5 @@ window.setInterval(() => {
   if (typeof postMessage == "function") syncDisplayTimer();
   save();
 }, 1000);
+
+window.addEventListener("beforeunload", save);

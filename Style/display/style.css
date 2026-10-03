@@ -2,7 +2,7 @@
   --font-size: calc((80vw / 12) / 0.6);
 
   /* Display layout */
-  --logo-bottom: calc(6% + 25vmin + 20px);
+  --logo-bottom: calc(4% + 25vmin + 20px);
   --progress-height: 16px;
   --content-side-margin: 10vw;
 }
@@ -205,7 +205,7 @@ body {
   left: 0;
 
   width: 10vw;
-  height: 12px;
+  height: 1.5vh;
 
   background-color: white;
 }
