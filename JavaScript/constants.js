@@ -1,3 +1,5 @@
+const VERSION = 2.0;
+
 const refreshRate = 60; //Hz
 const refreshDt = 1000 / refreshRate; //ms
 

@@ -54,6 +54,7 @@ body {
   font-family: 'Archivo', sans-serif;
   font-weight: bold;
 }
+
 #btnOpenDisplay{
   top: 3px;
   left: 3px;
@@ -70,6 +71,50 @@ body {
 #btnOpenDisplay:hover{
   background-color: rgba(0, 0, 0, 0.9);
   transition: background-color 200ms ease-in;
+}
+
+#deviceOptionsContainer{
+  display: none;
+  gap: 3px;
+  position: absolute;
+  padding: 5px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 40vh;
+  z-index: 5;
+
+  border-radius: 6px;
+
+  background-color: #2a3548;
+  box-shadow: 0 0 10px 2px black;
+}
+.deviceOption{
+  border: solid gray 1px;
+  border-radius: 6px;
+  font-size: large;
+  background-color: rgb(26, 23, 40);
+  color: white;
+}
+.deviceOption:hover{
+  background-color: rgb(9, 8, 13);
+}
+
+#displayUrlContainer{
+  text-align: center;
+  align-content: center;
+  border-radius: 6px;
+  margin: 6px;
+  padding: 5px;
+  gap: 5px;
+  display: none;
+
+  background-color: #1b1b39;
+  font-size: smaller;
+  color: white;
+}
+#displayUrl{
+  margin-top: 5px;
 }
 
 

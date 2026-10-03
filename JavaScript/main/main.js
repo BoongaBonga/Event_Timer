@@ -35,11 +35,6 @@ function displayCounter() {
 //                      Event Handlers                         //
 /////////////////////////////////////////////////////////////////
 
-//Window Opening
-el_btnOpenDisplay.onclick = () => {
-  window.open("display.html", "counterDisplay", "width=800,height=600");
-};
-
 //Display Settings buttons
 const el_displaySetting_hide = document.getElementById("hide");
 const el_displaySetting_show_ms = document.getElementById("showMs");
@@ -56,19 +51,19 @@ let showColor = true;
 el_displaySetting_hide.onclick = () => {
   displayHidden = !displayHidden;
 
-  channel.postMessage({
+  postMessage({
     id: "set_hidden",
     value: displayHidden,
   });
 
   if (displayHidden) {
     showingMessage = false;
-    channel.postMessage({
+    postMessage({
       id: "clear_message",
       value: null,
     });
     maximized = false;
-    channel.postMessage({
+    postMessage({
       id: "maximize_message",
       value: maximized,
     });
@@ -80,7 +75,7 @@ el_displaySetting_hide.onclick = () => {
 
 el_displaySetting_show_ms.onclick = () => {
   showMs = !showMs;
-  channel.postMessage({
+  postMessage({
     id: "set_show_ms",
     value: showMs,
   });
@@ -90,7 +85,7 @@ el_displaySetting_show_ms.onclick = () => {
 
 el_displaySetting_show_percent.onclick = () => {
   showPercent = !showPercent;
-  channel.postMessage({
+  postMessage({
     id: "set_show_percent",
     value: showPercent,
   });
@@ -100,7 +95,7 @@ el_displaySetting_show_percent.onclick = () => {
 
 el_displaySetting_show_event.onclick = () => {
   showEvent = !showEvent;
-  channel.postMessage({
+  postMessage({
     id: "set_show_event",
     value: showEvent,
   });
@@ -110,7 +105,7 @@ el_displaySetting_show_event.onclick = () => {
 
 el_displaySetting_show_color.onclick = () => {
   showColor = !showColor;
-  channel.postMessage({
+  postMessage({
     id: "set_show_color",
     value: showColor,
   });
@@ -133,7 +128,7 @@ el_pauseTimer.onclick = () => {
   } else {
     el_pauseTimer.textContent = "❚❚";
   }
-  channel.postMessage({
+  postMessage({
     id: "pause",
     value: paused,
   });
@@ -173,7 +168,7 @@ let messageText = null;
 el_setMsg.onclick = () => {
   showingMessage = true;
   messageText = el_messageText.value;
-  channel.postMessage({
+  postMessage({
     id: "set_message",
     value: el_messageText.value,
   });
@@ -184,11 +179,11 @@ el_clearMsg.onclick = () => {
   messageText = null;
   maximized = false;
   clickDispayButton(el_maximizeMsg, maximized);
-  channel.postMessage({
+  postMessage({
     id: "clear_message",
     value: null,
   });
-  channel.postMessage({
+  postMessage({
     id: "maximize_message",
     value: maximized,
   });
@@ -197,7 +192,7 @@ el_clearMsg.onclick = () => {
 el_maximizeMsg.onclick = () => {
   if (!showingMessage || displayHidden) return;
   maximized = !maximized;
-  channel.postMessage({
+  postMessage({
     id: "maximize_message",
     value: maximized,
   });
@@ -210,7 +205,7 @@ el_maximizeMsg.onclick = () => {
 /////////////////////////////////////////////////////////////////
 
 function syncDisplayTimer() {
-  channel.postMessage({
+  postMessage({
     id: "new_time",
     value: {
       ms: counter.milliseconds,
@@ -218,10 +213,6 @@ function syncDisplayTimer() {
     },
   });
 }
-
-channel.onmessage = (msg) => {
-  if (msg.data == "request_update") updateDisplay();
-};
 
 /////////////////////////////////////////////////////////////////
 //                       SAVING & LOADING                      //
@@ -233,6 +224,8 @@ function loadAs(obj, Class) {
 
 function getSave() {
   return {
+    version: VERSION,
+    topicKey: topicKey,
     counter: counter,
     timeMaster: timeMaster,
     timerIdCount: timerIdCount,
@@ -248,11 +241,15 @@ function getSave() {
   };
 }
 function loadSave(save) {
+  if (save.version != VERSION)
+    alert("You're loading a deprecated save. Continue at your own risk :)");
+
   counter = save.counter;
   loadAs(counter, Counter.prototype);
   timeMaster = save.timeMaster;
   loadAs(timeMaster, TimeMaster.prototype);
 
+  topicKey = save.topicKey;
   timerIdCount = save.timerIdCount;
   displayHidden = save.displayHidden;
   showMs = save.showMs;
@@ -263,6 +260,8 @@ function loadSave(save) {
   maximized = save.maximized;
   showingMessage = save.showingMessage;
   messageText = save.messageText;
+
+  return true;
 }
 
 function save() {
@@ -308,16 +307,23 @@ function updateUI() {
 }
 
 function updateDisplay() {
-  channel.postMessage({id: "new_time", value: counter});
-  channel.postMessage({id: "new_timer", value: timeMaster.getCurrentTimer()});
-  channel.postMessage({id: "set_hidden", value: displayHidden});
-  channel.postMessage({id: "set_show_ms", value: showMs});
-  channel.postMessage({id: "set_show_percent", value: showPercent});
-  channel.postMessage({id: "set_show_event", value: showEvent});
-  channel.postMessage({id: "set_show_color", value: showColor});
-  if (showingMessage) channel.postMessage({id: "set_message", value: messageText});
-  if (showingMessage) channel.postMessage({id: "maximize_message", value: maximized});
-  channel.postMessage({id: "pause", value: paused});
+  console.log("display updating");
+  postMessage({
+    id: "new_time",
+    value: {
+      ms: counter.ms,
+      finished: counter.finished,
+    },
+  });
+  postMessage({id: "new_timer", value: timeMaster.getCurrentTimer()});
+  postMessage({id: "set_hidden", value: displayHidden});
+  postMessage({id: "set_show_ms", value: showMs});
+  postMessage({id: "set_show_percent", value: showPercent});
+  postMessage({id: "set_show_event", value: showEvent});
+  postMessage({id: "set_show_color", value: showColor});
+  if (showingMessage) postMessage({id: "set_message", value: messageText});
+  if (showingMessage) postMessage({id: "maximize_message", value: maximized});
+  postMessage({id: "pause", value: paused});
 }
 
 const cover = document.getElementById("cover");
@@ -331,7 +337,6 @@ function load() {
   window.setTimeout(() => {
     loadSave(JSON.parse(save));
     updateUI();
-    updateDisplay();
   }, 50);
 }
 
@@ -355,6 +360,6 @@ window.setInterval(() => {
 }, refreshDt);
 
 window.setInterval(() => {
-  syncDisplayTimer();
+  if (typeof postMessage == "function") syncDisplayTimer();
   save();
-}, 500);
+}, 1000);

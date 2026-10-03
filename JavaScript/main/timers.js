@@ -109,10 +109,12 @@ class TimeMaster {
     this.setCurrentTimerClass();
     counter.milliseconds = this.getTimerFromIndex(index).duration;
 
-    channel.postMessage({
-      id: "new_timer",
-      value: this.getCurrentTimer(),
-    });
+    if (typeof postMessage == "function") {
+      postMessage({
+        id: "new_timer",
+        value: this.getCurrentTimer(),
+      });
+    }
     return true;
   }
 

@@ -13,6 +13,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
+  <!-- Include the MQTT library via CDN -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
 </head>
 <body onload="load()">
   <!--to hide loading-->
@@ -30,6 +33,17 @@
     <button id="btnOpenDisplay">⇱</button>
     <span id="counter">23:46</span>
   </div>
+
+  <!--Device options (like same/cross-device)-->
+  <div id="deviceOptionsContainer">
+    <button id="singleDeviceButton" class="deviceOption">Single-device mode</button>
+    <button id="crossDeviceButton" class="deviceOption">Cross-device mode</button>
+    <span id="displayUrlContainer">
+      <span id="connectingStatus" style="color: yellow; font-weight: bold;">Connecting to broker...</span>
+      Copy this link into a browser: <span id="displayUrl"></span></span>
+    <button id="cancelDeviceButton" class="deviceOption">Cancel</button>
+  </div>
+
   <!--Display settings-->
   <div id="displaySettings">
     <button class="displaySetting" id="hide" style="border-left: none !important;">hide</button>
@@ -107,7 +121,7 @@
 
   <script src="JavaScript/constants.js"></script>
   <script src="JavaScript/counter.js"></script>
-  <script src="JavaScript/main/broadcasting.js"></script>
+  <script src="JavaScript/main/display.js"></script>
   <script src="JavaScript/main/timers.js"></script>
   <script src="JavaScript/main/main.js"></script>
 </body>
