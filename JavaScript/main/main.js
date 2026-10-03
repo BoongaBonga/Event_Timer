@@ -313,6 +313,7 @@ function updateUI() {
     list.appendChild(newTimer);
   }
   root.style.setProperty("--timerCount", timeMaster.timerCount);
+  timeMaster.setCurrentTimerClass();
 }
 
 function updateDisplay() {
@@ -350,8 +351,10 @@ function load() {
   }, 50);
 }
 
+let resetting = false;
 function reset() {
   localStorage.removeItem("Event_Timer_Save");
+  resetting = true;
   location.reload();
 }
 
@@ -374,4 +377,6 @@ window.setInterval(() => {
   save();
 }, 1000);
 
-window.addEventListener("beforeunload", save);
+window.addEventListener("beforeunload", () => {
+  if (!resetting) save;
+});

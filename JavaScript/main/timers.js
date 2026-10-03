@@ -63,10 +63,16 @@ class TimeMaster {
   }
 
   deleteTimer(id) {
+    this.clearCurrentTimerClass();
     delete this.timers[id];
     const index = this.getIndexOf(id);
     this.orderedTimerIds.splice(index, 1);
-    if (index == this.currentTimer) this.setCurrentTimerClass();
+
+    //shift the current timer if it was at the end to prevent edgecases
+    if (this.currentTimer >= this.timerCount) this.currentTimer = this.timerCount - 1;
+
+    if (index < this.currentTimer) this.currentTimer--;
+    this.setCurrentTimerClass();
   }
 
   /**
@@ -197,11 +203,11 @@ list.addEventListener("dragend", (e) => {
   item.classList.remove("dragging");
   draggingItem = null;
 
-  timeMaster.clearCurrentTimerClass();
+  const oldCurrentID = timeMaster.orderedTimerIds[timeMaster.currentTimer];
   timeMaster.orderedTimerIds = Array.from(list.children).map((child) =>
     Number(child.dataset.id),
   );
-  timeMaster.setCurrentTimerClass();
+  timeMaster.currentTimer = timeMaster.getIndexOf(oldCurrentID);
 });
 
 list.addEventListener("dragover", (e) => {
