@@ -111,7 +111,7 @@ class TimeMaster {
 
     if (typeof postMessage == "function") {
       postMessage({
-        id: "new_timer",
+        id: CommandType.NEW_TIMER,
         value: this.getCurrentTimer(),
       });
     }

@@ -1,21 +1,21 @@
 function handleMessage(msg) {
   if (!msg || typeof msg !== "object" || !msg.id) return;
 
-  console.log(msg.id);
+  console.log(CommandType[msg.id]);
   switch (msg.id) {
-    case "new_time": {
+    case CommandType.NEW_TIME: {
       //set this counter to be synced with the main one.
       counter.milliseconds = msg.value.ms;
       counter.finished = msg.value.finished;
       break;
     }
-    case "new_timer": {
+    case CommandType.NEW_TIMER: {
       el_event.textContent = msg.value.name;
       counter.milliseconds = currentTimerDuration = msg.value.duration;
       counter.finished = false;
       break;
     }
-    case "set_hidden": {
+    case CommandType.SET_HIDDEN: {
       counterHidden = msg.value;
 
       if (counterHidden) {
@@ -31,11 +31,11 @@ function handleMessage(msg) {
       }
       break;
     }
-    case "set_show_ms": {
+    case CommandType.SET_SHOW_MS: {
       showingMs = msg.value;
       break;
     }
-    case "set_show_percent": {
+    case CommandType.SET_SHOW_PERCENT: {
       showingPercent = msg.value;
       if (showingPercent) {
         div_progressBar.style.display = "block";
@@ -44,7 +44,7 @@ function handleMessage(msg) {
       }
       break;
     }
-    case "set_show_event": {
+    case CommandType.SET_SHOW_EVENT: {
       showingEvent = msg.value;
       if (showingEvent && !showingMessage) {
         el_event.style.display = "block";
@@ -53,18 +53,18 @@ function handleMessage(msg) {
       }
       break;
     }
-    case "set_show_color": {
+    case CommandType.SET_SHOW_COLOR: {
       showingColor = msg.value;
       break;
     }
-    case "set_message": {
+    case CommandType.SET_MESSAGE: {
       showingMessage = true;
       el_event.style.display = "none";
       el_message.style.display = "block";
       el_message.textContent = msg.value;
       break;
     }
-    case "clear_message": {
+    case CommandType.CLEAR_MESSAGE: {
       showingMessage = false;
       maximized = false;
       if (showingEvent) el_event.style.display = "block";
@@ -72,13 +72,13 @@ function handleMessage(msg) {
       el_counter.style.display = "block";
       break;
     }
-    case "maximize_message": {
+    case CommandType.SET_MAXIMIZE_MESSAGE: {
       maximized = msg.value;
       setMaximized(maximized);
 
       break;
     }
-    case "pause": {
+    case CommandType.SET_PAUZE: {
       paused = msg.value;
       break;
     }

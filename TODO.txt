@@ -1,3 +1,6 @@
+- fix the UI scaling on the dipslay side
+- decrease number of writes to savefile
+
 - Add multiple ways of saving
 - Add multiple save files to choose from
 - Add timer until hh:mm instead of duration option

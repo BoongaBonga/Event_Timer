@@ -52,19 +52,19 @@ el_displaySetting_hide.onclick = () => {
   displayHidden = !displayHidden;
 
   postMessage({
-    id: "set_hidden",
+    id: CommandType.SET_HIDDEN,
     value: displayHidden,
   });
 
   if (displayHidden) {
     showingMessage = false;
     postMessage({
-      id: "clear_message",
+      id: CommandType.CLEAR_MESSAGE,
       value: null,
     });
     maximized = false;
     postMessage({
-      id: "maximize_message",
+      id: CommandType.SET_MAXIMIZE_MESSAGE,
       value: maximized,
     });
   }
@@ -76,7 +76,7 @@ el_displaySetting_hide.onclick = () => {
 el_displaySetting_show_ms.onclick = () => {
   showMs = !showMs;
   postMessage({
-    id: "set_show_ms",
+    id: CommandType.SET_SHOW_MS,
     value: showMs,
   });
 
@@ -86,7 +86,7 @@ el_displaySetting_show_ms.onclick = () => {
 el_displaySetting_show_percent.onclick = () => {
   showPercent = !showPercent;
   postMessage({
-    id: "set_show_percent",
+    id: CommandType.SET_SHOW_PERCENT,
     value: showPercent,
   });
 
@@ -96,7 +96,7 @@ el_displaySetting_show_percent.onclick = () => {
 el_displaySetting_show_event.onclick = () => {
   showEvent = !showEvent;
   postMessage({
-    id: "set_show_event",
+    id: CommandType.SET_SHOW_EVENT,
     value: showEvent,
   });
 
@@ -106,7 +106,7 @@ el_displaySetting_show_event.onclick = () => {
 el_displaySetting_show_color.onclick = () => {
   showColor = !showColor;
   postMessage({
-    id: "set_show_color",
+    id: CommandType.SET_SHOW_COLOR,
     value: showColor,
   });
 
@@ -129,7 +129,7 @@ el_pauseTimer.onclick = () => {
     el_pauseTimer.textContent = "❚❚";
   }
   postMessage({
-    id: "pause",
+    id: CommandType.SET_PAUZE,
     value: paused,
   });
 };
@@ -169,7 +169,7 @@ el_setMsg.onclick = () => {
   showingMessage = true;
   messageText = el_messageText.value;
   postMessage({
-    id: "set_message",
+    id: CommandType.SET_MESSAGE,
     value: el_messageText.value,
   });
 };
@@ -180,11 +180,11 @@ el_clearMsg.onclick = () => {
   maximized = false;
   clickDispayButton(el_maximizeMsg, maximized);
   postMessage({
-    id: "clear_message",
+    id: CommandType.CLEAR_MESSAGE,
     value: null,
   });
   postMessage({
-    id: "maximize_message",
+    id: CommandType.SET_MAXIMIZE_MESSAGE,
     value: maximized,
   });
 };
@@ -193,7 +193,7 @@ el_maximizeMsg.onclick = () => {
   if (!showingMessage || displayHidden) return;
   maximized = !maximized;
   postMessage({
-    id: "maximize_message",
+    id: CommandType.SET_MAXIMIZE_MESSAGE,
     value: maximized,
   });
 
@@ -206,7 +206,7 @@ el_maximizeMsg.onclick = () => {
 
 function syncDisplayTimer() {
   postMessage({
-    id: "new_time",
+    id: CommandType.NEW_TIME,
     value: {
       ms: counter.milliseconds,
       finished: counter.finished,
@@ -318,21 +318,22 @@ function updateUI() {
 function updateDisplay() {
   console.log("display updating");
   postMessage({
-    id: "new_time",
+    id: CommandType.NEW_TIME,
     value: {
       ms: counter.ms,
       finished: counter.finished,
     },
   });
-  postMessage({id: "new_timer", value: timeMaster.getCurrentTimer()});
-  postMessage({id: "set_hidden", value: displayHidden});
-  postMessage({id: "set_show_ms", value: showMs});
-  postMessage({id: "set_show_percent", value: showPercent});
-  postMessage({id: "set_show_event", value: showEvent});
-  postMessage({id: "set_show_color", value: showColor});
-  if (showingMessage) postMessage({id: "set_message", value: messageText});
-  if (showingMessage) postMessage({id: "maximize_message", value: maximized});
-  postMessage({id: "pause", value: paused});
+  postMessage({id: CommandType.NEW_TIMER, value: timeMaster.getCurrentTimer()});
+  postMessage({id: CommandType.SET_HIDDEN, value: displayHidden});
+  postMessage({id: CommandType.SET_SHOW_MS, value: showMs});
+  postMessage({id: CommandType.SET_SHOW_PERCENT, value: showPercent});
+  postMessage({id: CommandType.SET_SHOW_EVENT, value: showEvent});
+  postMessage({id: CommandType.SET_SHOW_COLOR, value: showColor});
+  if (showingMessage) postMessage({id: CommandType.SET_MESSAGE, value: messageText});
+  if (showingMessage)
+    postMessage({id: CommandType.SET_MAXIMIZE_MESSAGE, value: maximized});
+  postMessage({id: CommandType.SET_PAUZE, value: paused});
 }
 
 const cover = document.getElementById("cover");
