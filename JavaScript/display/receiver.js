@@ -92,6 +92,9 @@ function handleMessage(msg) {
 
 let postMessage;
 
+let connected = false;
+const loadingCircle = document.getElementById("loading");
+
 function webSocketConnect(topicKey) {
   const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
   const topic = "VineyardEventCounter:" + topicKey;
@@ -102,6 +105,11 @@ function webSocketConnect(topicKey) {
   });
 
   client.on("message", (receivedTopic, message) => {
+    if (!connected) {
+      connected = true;
+      loadingCircle.style.display = "none";
+    }
+
     const raw = message.toString();
 
     // Ignore plain text commands like 'request_update' sent by clients
@@ -142,6 +150,11 @@ function webSocketConnect(topicKey) {
 function broadCastChannelConnect() {
   const channel = new BroadcastChannel("EventTimerDisplay");
   channel.onmessage = (msg) => {
+    if (!connected) {
+      connected = true;
+      loadingCircle.style.display = "none";
+    }
+
     handleMessage(msg.data);
   };
 
