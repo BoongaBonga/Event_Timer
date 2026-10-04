@@ -159,7 +159,9 @@ class TimeMaster {
     for (let i in this.orderedTimerIds) {
       const index = Number(i);
       const timer = this.timers[this.orderedTimerIds[index]];
-      if (timer.autoStart == AutoStart.NONE) continue;
+
+      //if there is no timer or if the timer doesn' thave autostart
+      if (!timer || !timer.autoStart) continue;
 
       if (timer.hasStartedToday) {
         //If current time is less than startTime, that means it can trigger again.

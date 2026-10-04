@@ -274,6 +274,7 @@ function loadSave(save) {
 }
 
 function save() {
+  if (resetting) return;
   localStorage.setItem("Event_Timer_Save", JSON.stringify(getSave()));
 }
 
@@ -378,7 +379,7 @@ window.setInterval(() => {
 }, 1000);
 
 window.addEventListener("beforeunload", () => {
-  if (!resetting) save();
+  save();
 });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
@@ -386,5 +387,5 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 window.addEventListener("pagehide", () => {
-  if (!resetting) save();
+  save();
 });

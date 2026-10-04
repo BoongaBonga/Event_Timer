@@ -13,6 +13,13 @@ let mqttClient = null;
 let mqttTopic = null;
 ///Connects to the given topic
 function webSocketConnect(topic) {
+  if (typeof mqtt == "undefined") {
+    console.error(
+      "Failed loading mqtt script. Can't access cross-device mode right now.",
+    );
+    return;
+  }
+
   mqttTopic = topic;
 
   if (mqttClient) {
