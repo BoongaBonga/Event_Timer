@@ -9,19 +9,49 @@ let url = null;
 
 let postMessage;
 
+let mqttClient = null;
+let mqttTopic = null;
 ///Connects to the given topic
 function webSocketConnect(topic) {
-  const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
-  const statusEl = document.getElementById("connectingStatus");
+  mqttTopic = topic;
 
-  client.on("connect", () => {
-    client.subscribe(topic);
-    statusEl.textContent = "Connected! Ready to send commands.";
-    statusEl.style.color = "green";
-    updateDisplay();
+  if (mqttClient) {
+    mqttClient.end(true);
+    mqttClient = null;
+  }
+
+  mqttClient = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", {
+    reconnectPeriod: 1000,
+    connectTimeout: 10000,
+    keepalive: 30,
   });
 
-  client.on("message", (receivedTopic, message) => {
+  const statusEl = document.getElementById("connectingStatus");
+
+  mqttClient.on("connect", () => {
+    mqttClient.subscribe(mqttTopic, (err) => {
+      if (err) {
+        console.error("MQTT subscribe failed:", err);
+        return;
+      }
+
+      statusEl.textContent = "Connected! Ready to send commands.";
+      statusEl.style.color = "green";
+      updateDisplay();
+    });
+  });
+
+  mqttClient.on("reconnect", () => {
+    console.log("MQTT reconnecting...");
+    statusEl.textContent = "Reconnecting...";
+    statusEl.style.color = "orange";
+  });
+
+  mqttClient.on("close", () => {
+    console.warn("MQTT connection closed");
+  });
+
+  mqttClient.on("message", (receivedTopic, message) => {
     const raw = message.toString();
 
     if (raw === "request_update") {
@@ -29,16 +59,33 @@ function webSocketConnect(topic) {
     }
   });
 
-  client.on("error", (err) => {
+  mqttClient.on("error", (err) => {
+    console.error("MQTT error: " + err);
     statusEl.innerText = "Connection error: " + err.message;
     statusEl.style.color = "red";
   });
 
   postMessage = function (msg) {
+    if (!mqttClient || !mqttClient.connected) {
+      console.warn("Tried to send MQTT message while disconnected");
+      return false;
+    }
+
     const payload = typeof msg === "object" ? JSON.stringify(msg) : msg;
-    client.publish(topic, payload);
+    mqttClient.publish(topic, payload);
+
+    return true;
   };
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+
+  if (DISPLAYMODE === DisplayMode.CROSS_DEVICE && mqttClient && !mqttClient.connected) {
+    console.log("Page visible again, reconnecting MQTT...");
+    mqttClient.reconnect();
+  }
+});
 
 //This function handles everything to connect once again to the websocketchannel
 function handleWebsocketConnect() {
@@ -65,6 +112,11 @@ function handleWebsocketConnect() {
 
 function broadCastChannelConnect() {
   DISPLAYMODE = DisplayMode.SINGLE_DEVICE;
+
+  if (mqttClient) {
+    mqttClient.end(true);
+    mqttClient = null;
+  }
 
   window.open("display.html", "counterDisplay", "width=800,height=600");
 

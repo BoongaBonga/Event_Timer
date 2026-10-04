@@ -321,7 +321,7 @@ function updateDisplay() {
   postMessage({
     id: CommandType.NEW_TIME,
     value: {
-      ms: counter.ms,
+      ms: counter.milliseconds,
       finished: counter.finished,
     },
   });
@@ -378,5 +378,13 @@ window.setInterval(() => {
 }, 1000);
 
 window.addEventListener("beforeunload", () => {
-  if (!resetting) save;
+  if (!resetting) save();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    save();
+  }
+});
+window.addEventListener("pagehide", () => {
+  if (!resetting) save();
 });

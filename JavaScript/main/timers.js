@@ -60,6 +60,7 @@ class TimeMaster {
   pushTimer(timer, id) {
     this.orderedTimerIds.push(id);
     this.timers[id] = timer;
+    save();
   }
 
   deleteTimer(id) {
@@ -72,6 +73,7 @@ class TimeMaster {
     if (this.currentTimer >= this.timerCount) this.currentTimer = this.timerCount - 1;
     else if (index < this.currentTimer) this.currentTimer--;
     this.setCurrentTimerClass();
+    save();
   }
 
   /**
@@ -108,7 +110,10 @@ class TimeMaster {
 
   setNewTimer(index) {
     if (typeof index != "number") console.error("can't assing timer to string");
-    if (this.timerCount <= index || index < 0) return false;
+    if (this.timerCount <= index || index < 0) {
+      console.error("tried to set new timer to invalid index.");
+      return false;
+    }
     this.clearCurrentTimerClass();
     this.currentTimer = index;
     this.setCurrentTimerClass();
@@ -207,6 +212,7 @@ list.addEventListener("dragend", (e) => {
     Number(child.dataset.id),
   );
   timeMaster.currentTimer = timeMaster.getIndexOf(oldCurrentID);
+  save();
 });
 
 list.addEventListener("dragover", (e) => {
