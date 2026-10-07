@@ -402,6 +402,7 @@ function updateUI() {
       loadSavefile(index);
     };
   }
+  el_savesContainer.children[1 + currentSave].style.backgroundColor = "#4a7a8a";
 }
 
 function updateDisplay() {
