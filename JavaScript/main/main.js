@@ -209,7 +209,8 @@ function checkSaveHover() {
   window.setTimeout(() => {
     if (
       document.querySelector("saves:hover") ||
-      document.querySelector(".savefile:hover")
+      document.querySelector(".savefile:hover") ||
+      document.querySelector("#saveFilesOption:hover")
     )
       return;
     else el_savesContainer.style.display = "none";
@@ -219,6 +220,8 @@ el_saveFilesOption.onmouseout = checkSaveHover;
 el_savesContainer.onmouseout = checkSaveHover;
 
 function addSaveFile() {
+  if (!window.confirm("Do you want to add a new save file?")) return;
+
   cover.style.opacity = 1;
 
   window.setTimeout(() => {
@@ -239,6 +242,8 @@ function addSaveFile() {
       showingMessage: false,
       messageText: null,
     });
+    const saveId = saves.length - 1;
+    saveNames.push(`savefile ${saves.length - 1}`);
     currentSave = saves.length - 1;
 
     loadSave(saves[saves.length - 1]);
@@ -246,6 +251,33 @@ function addSaveFile() {
     cover.style.opacity = 0;
   }, 1500);
 }
+
+let saveFileClickTimer = 0;
+let preventSaveFileClick = false;
+function handleSaveFileClick(index) {
+  timer = window.setTimeout(() => {
+    if (!preventSaveFileClick) {
+      loadSavefile(Number(index));
+    }
+    preventSaveFileClick = false;
+  }, 300);
+}
+function handleSaveFileDblclick(index) {
+  clearTimeout(timer);
+  preventSaveFileClick = true;
+
+  const newName = window.prompt("Enter new savefile name", saveNames[index]);
+  if (!newName) return;
+  el_savesContainer.children[1 + Number(index)].textContent = newName;
+  saveNames[index] = newName;
+}
+
+document.getElementById("savefile0").addEventListener("click", (el) => {
+  handleSaveFileClick(el.explicitOriginalTarget.dataset.id);
+});
+document.getElementById("savefile0").addEventListener("dblclick", (el) => {
+  handleSaveFileDblclick(el.explicitOriginalTarget.dataset.id);
+});
 
 /////////////////////////////////////////////////////////////////
 //                         Broadcasting                        //
@@ -266,6 +298,7 @@ function syncDisplayTimer() {
 /////////////////////////////////////////////////////////////////
 
 let saves = [getSave()];
+let saveNames = ["savefile 0"];
 let currentSave = 0;
 
 function loadAs(obj, Class) {
@@ -324,12 +357,14 @@ function loadSave(save) {
 }
 
 function loadSavefile(index) {
+  if (!confirm(`Do you want to load ${saveNames[index]}?`)) return;
   console.log("Loading save " + index);
   currentSave = Number(index) || 0;
   resetting = true;
-  loadSave(saves[index]);
+
   cover.style.opacity = 1;
   window.setTimeout(() => {
+    loadSave(saves[index]);
     updateUI();
     cover.style.opacity = 0;
     resetting = false;
@@ -342,7 +377,7 @@ function save() {
   saves[currentSave] = getSave();
   localStorage.setItem(
     "Event_Timer_Save",
-    JSON.stringify({saves: saves, currentSave: currentSave}),
+    JSON.stringify({saves: saves, saveNames: saveNames, currentSave: currentSave}),
   );
 }
 
@@ -395,12 +430,15 @@ function updateUI() {
     newSave.dataset.id = index;
     newSave.id = "savefile" + index;
 
-    newSave.textContent = "savefile " + index;
+    newSave.textContent = saveNames[i];
 
     el_savesContainer.appendChild(newSave);
-    newSave.onclick = () => {
-      loadSavefile(index);
-    };
+    newSave.addEventListener("click", (el) => {
+      handleSaveFileClick(el.explicitOriginalTarget.dataset.id);
+    });
+    newSave.addEventListener("dblclick", (el) => {
+      handleSaveFileDblclick(el.explicitOriginalTarget.dataset.id);
+    });
   }
   el_savesContainer.children[1 + currentSave].style.backgroundColor = "#4a7a8a";
 }
@@ -436,6 +474,7 @@ function load() {
   const saveFiles = JSON.parse(save);
   console.log(saveFiles);
   saves = saveFiles.saves;
+  saveNames = saveFiles.saveNames;
   currentSave = saveFiles.currentSave;
 
   const saveFile = saves[currentSave];
@@ -450,6 +489,7 @@ function load() {
 
 let resetting = false;
 function reset() {
+  if (!window.confirm("Are you sure you want to reset ALL YOUR SAVEFILES?")) return;
   localStorage.removeItem("Event_Timer_Save");
   resetting = true;
   location.reload();

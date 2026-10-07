@@ -7,6 +7,8 @@
 body {
   font-family: sans-serif;
 
+  overflow: hidden;
+
   background-color: rgb(30, 30, 30);
   color: black;
 }
@@ -69,21 +71,24 @@ body {
 #saves{
   position: absolute;
   top: calc(var(--topBarHeight) - 2vh);
+  left: 60px;
   display: none;
   flex-direction: column;
   align-content: center;
-  justify-content: center;
+  overflow-y: scroll;
 
   padding: 0 4px;
   width: 100px;
+  max-height: 80vh;
 
   border: inset black 0.4vh;
   background-color: darkgray;
 }
 .savefile{
+  flex-shrink: 0;
   padding: 0 4px;
 
-  height: 30px;
+  min-height: 30px;
   color: white;
   background-color: #2a3548;
 }
