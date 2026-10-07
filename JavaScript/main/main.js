@@ -200,6 +200,53 @@ el_maximizeMsg.onclick = () => {
   clickDispayButton(el_maximizeMsg, maximized);
 };
 
+const el_saveFilesOption = document.getElementById("saveFilesOption");
+const el_savesContainer = document.getElementById("saves");
+el_saveFilesOption.onmouseover = () => {
+  el_savesContainer.style.display = "flex";
+};
+function checkSaveHover() {
+  window.setTimeout(() => {
+    if (
+      document.querySelector("saves:hover") ||
+      document.querySelector(".savefile:hover")
+    )
+      return;
+    else el_savesContainer.style.display = "none";
+  }, 500);
+}
+el_saveFilesOption.onmouseout = checkSaveHover;
+el_savesContainer.onmouseout = checkSaveHover;
+
+function addSaveFile() {
+  cover.style.opacity = 1;
+
+  window.setTimeout(() => {
+    saves.push({
+      version: VERSION,
+      topicKey: topicKey,
+      DISPLAYMODE: DISPLAYMODE,
+      counter: new Counter(),
+      timeMaster: new TimeMaster(),
+      timerIdCount: 1,
+      displayHidden: false,
+      showMs: false,
+      showPercent: true,
+      showEvent: true,
+      showColor: true,
+      paused: false,
+      maximized: false,
+      showingMessage: false,
+      messageText: null,
+    });
+    currentSave = saves.length - 1;
+
+    loadSave(saves[saves.length - 1]);
+    updateUI(); //Already takes care of added button
+    cover.style.opacity = 0;
+  }, 1500);
+}
+
 /////////////////////////////////////////////////////////////////
 //                         Broadcasting                        //
 /////////////////////////////////////////////////////////////////
@@ -217,6 +264,9 @@ function syncDisplayTimer() {
 /////////////////////////////////////////////////////////////////
 //                       SAVING & LOADING                      //
 /////////////////////////////////////////////////////////////////
+
+let saves = [getSave()];
+let currentSave = 0;
 
 function loadAs(obj, Class) {
   Object.setPrototypeOf(obj, Class);
@@ -273,9 +323,27 @@ function loadSave(save) {
   return true;
 }
 
+function loadSavefile(index) {
+  console.log("Loading save " + index);
+  currentSave = Number(index) || 0;
+  resetting = true;
+  loadSave(saves[index]);
+  cover.style.opacity = 1;
+  window.setTimeout(() => {
+    updateUI();
+    cover.style.opacity = 0;
+    resetting = false;
+  }, 1500);
+}
+
 function save() {
   if (resetting) return;
-  localStorage.setItem("Event_Timer_Save", JSON.stringify(getSave()));
+
+  saves[currentSave] = getSave();
+  localStorage.setItem(
+    "Event_Timer_Save",
+    JSON.stringify({saves: saves, currentSave: currentSave}),
+  );
 }
 
 function updateUI() {
@@ -315,6 +383,25 @@ function updateUI() {
   }
   root.style.setProperty("--timerCount", timeMaster.timerCount);
   timeMaster.setCurrentTimerClass();
+
+  //Show the saves list in the saves container
+  //Only leave the addSavebutton
+  el_savesContainer.innerHTML =
+    '<button class="savefile" id="addSaveButton" onclick="addSaveFile()">Add new save</button>';
+  for (i in saves) {
+    let index = Number(i);
+    let newSave = document.createElement("button");
+    newSave.classList.add("savefile");
+    newSave.dataset.id = index;
+    newSave.id = "savefile" + index;
+
+    newSave.textContent = "savefile " + index;
+
+    el_savesContainer.appendChild(newSave);
+    newSave.onclick = () => {
+      loadSavefile(index);
+    };
+  }
 }
 
 function updateDisplay() {
@@ -345,9 +432,17 @@ function load() {
   cover.style.opacity = 0;
   if (!save) return;
 
+  const saveFiles = JSON.parse(save);
+  console.log(saveFiles);
+  saves = saveFiles.saves;
+  currentSave = saveFiles.currentSave;
+
+  const saveFile = saves[currentSave];
+  if (!saveFile) return;
+
   //wait until the other things have loaded in
   window.setTimeout(() => {
-    loadSave(JSON.parse(save));
+    loadSave(saveFile);
     updateUI();
   }, 50);
 }
@@ -363,9 +458,24 @@ function reset() {
 //                          MAIN LOOP                          //
 /////////////////////////////////////////////////////////////////
 
+function applyCounterColor() {
+  if (showColor) {
+    if (counter.milliseconds > 12e4) {
+      el_counterDisplay.style.color = "white";
+    } else if (counter.milliseconds > 0) {
+      el_counterDisplay.style.color = "yellow";
+    } else {
+      el_counterDisplay.style.color = "red";
+    }
+  } else {
+    el_counterDisplay.style.color = "white";
+  }
+}
+
 window.setInterval(() => {
   if (!paused) {
     counter.updateCounter();
+    applyCounterColor();
     timeMaster.updateTimers();
   } else {
     counter.lastUpdate = Date.now();

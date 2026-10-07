@@ -1,6 +1,7 @@
 :root{
   --counterPreviewW: 50vw;
   --counterPreviewH: 40vh;
+  --topBarHeight: 10vh;
 }
 
 body {
@@ -27,6 +28,66 @@ body {
   transition: opacity 1.5s ease-in;
 }
 
+/*TOP bar*/
+#topBarContainer{
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  top: 0;
+  left: 0;
+  padding-left: 10px;
+  width: 100vw;
+  height: calc(var(--topBarHeight) - 2vh);
+
+  z-index: 2;
+
+  border-bottom: solid rgb(89, 89, 89) 0.75vh;
+  background-color: rgb(179, 179, 179);
+}
+.topBarOption{
+  height: calc(var(--topBarHeight) * 0.6);
+  z-index: 3;
+  align-content: center;
+  text-align: center;
+  box-sizing: content-box;
+
+  padding: 0 4px;
+
+  color: white;
+  background-color: #2a3548;
+  border: inset black 0.4vh;
+  font-size: 18px;
+}
+.topBarOption:hover{
+  background-color: #1e2634;
+}
+
+#saves{
+  position: absolute;
+  top: calc(var(--topBarHeight) - 2vh);
+  display: none;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+
+  padding: 0 4px;
+  width: 100px;
+
+  border: inset black 0.4vh;
+  background-color: darkgray;
+}
+.savefile{
+  padding: 0 4px;
+
+  height: 30px;
+  color: white;
+  background-color: #2a3548;
+}
+
 
 /*COUNTER PREVIEW*/
 #counterPreview{
@@ -34,10 +95,10 @@ body {
 
   width: 70vw;
   height: 40vmin;
-  margin: 20px 20px 0 20px;
+  margin: calc(20px + var(--topBarHeight)) 20px 0 20px;
 
-  background-color: yellow;
-  color: black;
+  background-color: black;
+  color: white;
 
   border: inset 4px gray;
 
@@ -47,7 +108,7 @@ body {
 }
 #counter{
   position: absolute;
-  top: calc(20vmin + 20px);
+  top: calc(20vmin + 20px + var(--topBarHeight));
   left: calc(35vw + 20px);
   transform: translate(-50%, -50%);
   font-size: calc(70vw/12 / 0.7);
@@ -62,14 +123,14 @@ body {
   height: 8vmin;
   margin: 3px;
 
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.7);
+  color: black;
 
   border: none;
   border-radius: 50%;
 }
 #btnOpenDisplay:hover{
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(255, 255, 255, 0.9);
   transition: background-color 200ms ease-in;
 }
 

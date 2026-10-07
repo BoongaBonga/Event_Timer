@@ -26,7 +26,14 @@
   </div>
 
   <!--Toolbar on top-->
-  <div></div>
+  <div id="topBarContainer">
+    <span class="topBarOption" style="width: 100px;" id="saveFilesOption">Save files</span>
+    <div id="saves">
+      <button class="savefile" id="addSaveButton" onclick="addSaveFile()">Add new save</button>
+      <button class="savefile" id="savefile0" data-id="0" onclick="loadSavefile(0)">savefile 0</button>
+    </div>
+    <button class="topBarOption" onclick="reset()">Reset</button>
+  </div>
 
   <!--Counter Preview-->
   <div id="counterPreview">
@@ -116,8 +123,6 @@
       Start time <input type="time" value="19:00" step="60" id="timerEditorStartTime">
     </div>
   </div>
-
-  <button onclick="reset()" style="position: absolute; top: 0; left: 0;">reset</button>
 
   <script src="JavaScript/constants.js"></script>
   <script src="JavaScript/counter.js"></script>

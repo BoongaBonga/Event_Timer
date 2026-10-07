@@ -1,6 +1,6 @@
 class Counter {
   constructor() {
-    this.milliseconds = 0;
+    this.milliseconds = 3e5;
 
     this.finished = false;
 

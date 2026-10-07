@@ -72,7 +72,7 @@ function displayCounter() {
     if (counter.milliseconds > 12e4) {
       el_counter.style.color = "white";
       div_progressBar.style.backgroundColor = "white";
-    } else if (counter.milliseconds > 20e3) {
+    } else if (counter.milliseconds > 0) {
       el_counter.style.color = "yellow";
       div_progressBar.style.backgroundColor = "yellow";
     } else {
