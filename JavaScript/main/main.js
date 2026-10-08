@@ -243,10 +243,10 @@ function addSaveFile() {
       messageText: null,
     });
     const saveId = saves.length - 1;
-    saveNames.push(`savefile ${saves.length - 1}`);
-    currentSave = saves.length - 1;
+    saveNames.push(`savefile ${saveId}`);
+    currentSave = saveId;
 
-    loadSave(saves[saves.length - 1]);
+    loadSave(saves[saveId]);
     updateUI(); //Already takes care of added button
     cover.style.opacity = 0;
   }, 1500);
@@ -277,6 +277,91 @@ document.getElementById("savefile0").addEventListener("click", (el) => {
 });
 document.getElementById("savefile0").addEventListener("dblclick", (el) => {
   handleSaveFileDblclick(el.explicitOriginalTarget.dataset.id);
+});
+
+//Exporting
+document.getElementById("exportSave").addEventListener("click", () => {
+  const data = getSave();
+
+  const jsonString = JSON.stringify(data, null, 2);
+  const encodedString = btoa(jsonString);
+
+  const blob = new Blob([encodedString], {type: "application/json"});
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "data.json";
+
+  link.click();
+
+  URL.revokeObjectURL(url);
+});
+
+// Check if the content is Base64 encoded
+function isBase64(str) {
+  try {
+    return btoa(atob(str)) === str;
+  } catch (err) {
+    return false;
+  }
+}
+
+//Importingg
+document.getElementById("importSave").addEventListener("click", () => {
+  // Create a hidden file input dynamically
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = ".json"; // Only accept .json files
+
+  // Listen for file selection
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files[0];
+    if (!file) {
+      console.error("No file selected.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    // Read the file as text
+    reader.onload = function (event) {
+      try {
+        // Get the file content as text
+        const fileContent = event.target.result;
+
+        // Check if the file content is Base64 encoded (optional, you can skip this part if not needed)
+        let decodedData = fileContent;
+        if (isBase64(fileContent)) {
+          decodedData = atob(fileContent); // Decode Base64
+        }
+
+        // load the new save
+        resetting = true;
+        const save = JSON.parse(decodedData);
+
+        saves.push(save);
+        const saveId = saves.length - 1;
+        saveNames.push(`import ${saveId}`);
+        currentSave = saveId;
+
+        loadSave(save);
+        updateUI();
+
+        // Log success
+        console.log("Savegame loaded successfully!");
+      } catch (error) {
+        console.error("Error loading savegame:", error);
+      }
+    };
+
+    // Read the file content as a text
+    reader.readAsText(file);
+  });
+
+  // Programmatically click the file input to trigger the upload dialog
+  fileInput.click();
 });
 
 /////////////////////////////////////////////////////////////////
@@ -489,7 +574,7 @@ function load() {
 
 let resetting = false;
 function reset() {
-  if (!window.confirm("Are you sure you want to reset ALL YOUR SAVEFILES?")) return;
+  //if (!window.confirm("Are you sure you want to reset ALL YOUR SAVEFILES?")) return;
   localStorage.removeItem("Event_Timer_Save");
   resetting = true;
   location.reload();

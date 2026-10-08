@@ -1,6 +1,3 @@
-- decrease number of writes to savefile
-DOING Add multiple ways of saving
-- Add multiple save files to choose from
 - Add timer until hh:mm instead of duration option
 
 - Add time over overview
@@ -20,3 +17,5 @@ DONE!!!
 - Add automatic timer starting at some time setting
 - Add automatic timer next setting once timer's done
 - fix the UI scaling on the dipslay side
+- Add multiple save files to choose from
+- Add multiple ways of saving
