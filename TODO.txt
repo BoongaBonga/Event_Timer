@@ -1,3 +1,7 @@
+- Add message box for lyrics display
+- Make display website standalone
+- Fix lyrics sizing over
+
 - Add timer until hh:mm instead of duration option
 
 - Add time over overview
@@ -10,12 +14,10 @@
 (NOT SO) FAR FUTURE:
 - Add worship slides (w propresenter API)
 
-PROBABLY DONE! (testing needed)
-- Make remote-controlled display with new url
-
 DONE!!!
 - Add automatic timer starting at some time setting
 - Add automatic timer next setting once timer's done
 - fix the UI scaling on the dipslay side
 - Add multiple save files to choose from
 - Add multiple ways of saving
+- Make remote-controlled display with new url

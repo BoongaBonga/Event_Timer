@@ -14,6 +14,8 @@ function handleMessage(msg) {
       el_testEvent.textContent = msg.value.name;
       counter.milliseconds = currentTimerDuration = msg.value.duration;
       counter.finished = false;
+
+      setEventFontSize();
       break;
     }
     case CommandType.SET_HIDDEN: {
@@ -24,11 +26,13 @@ function handleMessage(msg) {
         div_hide.style.display = "block";
         el_event.style.top = "calc(50vh + 13vmin)";
         el_event.style.fontSize = "15vmin";
+        el_lyricsCounter.style.opacity = "0";
       } else {
         div_show.style.display = "block";
         div_hide.style.display = "none";
         el_event.style.top = "var(--counter-bottom)";
         el_event.style.fontSize = "calc(var(--font-size) / 10 * 3)";
+        el_lyricsCounter.style.opacity = "1";
       }
       break;
     }
@@ -63,6 +67,7 @@ function handleMessage(msg) {
       el_event.style.display = "none";
       el_message.style.display = "block";
       el_message.textContent = msg.value;
+      setMessageFontSize();
       break;
     }
     case CommandType.CLEAR_MESSAGE: {
@@ -76,12 +81,29 @@ function handleMessage(msg) {
     case CommandType.SET_MAXIMIZE_MESSAGE: {
       maximized = msg.value;
       setMaximized(maximized);
+      setMessageFontSize();
 
       break;
     }
     case CommandType.SET_PAUZE: {
       paused = msg.value;
       break;
+    }
+    case CommandType.SET_LYRICS_MODE: {
+      lyricsMode = msg.value;
+      if (lyricsMode) {
+        el_lyrics.style.opacity = "1";
+        el_noLyrics.style.opacity = "0";
+      } else {
+        el_lyrics.style.opacity = "0";
+        el_noLyrics.style.opacity = "1";
+      }
+      setMessageFontSize();
+      break;
+    }
+    case CommandType.SET_LYRICS_TEXT: {
+      console.log("New lyrics text: " + msg.value);
+      el_lyricsText.textContent = msg.value;
     }
   }
 }
@@ -113,7 +135,7 @@ function webSocketConnect(topicKey) {
     const raw = message.toString();
 
     // Ignore plain text commands like 'request_update' sent by clients
-    if (raw === "request_update") {
+    if (raw === "request_update" || raw === "close_display") {
       return;
     }
 
@@ -178,3 +200,8 @@ function load() {
 
   postMessage("request_update");
 }
+
+//Close display to prevent website from reopening the window after it's closed
+addEventListener("unload", () => {
+  postMessage("close_display");
+});

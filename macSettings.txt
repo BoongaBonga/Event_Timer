@@ -1,0 +1,5 @@
+1) 192.168.1.155
+2) 192.168.0.223
+52215
+
+in propresenter 7.6.1, how can i connect to the stage display via HTTP websockets? i have this, port is 52215 and ip is to be determined

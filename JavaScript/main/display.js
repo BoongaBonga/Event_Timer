@@ -7,7 +7,7 @@ let DISPLAYMODE = null;
 let topicKey = null;
 let url = null;
 
-let postMessage;
+let postMessage = function (_, _) {};
 
 let mqttClient = null;
 let mqttTopic = null;
@@ -63,7 +63,9 @@ function webSocketConnect(topic) {
 
     if (raw === "request_update") {
       updateDisplay();
-    }
+    } /*else if (raw === "close_display") { //unloading the display should not prevent controller from trying to connect
+      DISPLAYMODE = null;
+    }*/
   });
 
   mqttClient.on("error", (err) => {
@@ -132,6 +134,8 @@ function broadCastChannelConnect() {
     if (event.data === "request_update" || event.data?.data === "request_update") {
       updateDisplay();
       console.log("sending update");
+    } else if (event.data === "close_display" || event.data?.data === "close_display") {
+      DISPLAYMODE = null;
     }
   };
 

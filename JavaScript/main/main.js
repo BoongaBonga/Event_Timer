@@ -41,12 +41,16 @@ const el_displaySetting_show_ms = document.getElementById("showMs");
 const el_displaySetting_show_percent = document.getElementById("show%");
 const el_displaySetting_show_event = document.getElementById("showEvent");
 const el_displaySetting_show_color = document.getElementById("showColor");
+const el_displaySetting_show_lyrics = document.getElementById("showLyrics");
 
 let displayHidden = false;
 let showMs = false;
 let showPercent = true;
 let showEvent = true;
 let showColor = true;
+let lyricsMode = false;
+let currentLyrics =
+  "As long as i'm breathing i've got a reason to\nPraise the Lord (Oh my soul)";
 
 el_displaySetting_hide.onclick = () => {
   displayHidden = !displayHidden;
@@ -113,6 +117,202 @@ el_displaySetting_show_color.onclick = () => {
   clickDispayButton(el_displaySetting_show_color, showColor);
 };
 
+el_displaySetting_show_lyrics.onclick = () => {
+  if (!lyricsMode) {
+    if (!propresenterConnected) {
+      if (!connectProPresenter(0)) return;
+    }
+  } else {
+    //Disconnect
+    disconnectProPresenter();
+  }
+
+  lyricsMode = !lyricsMode;
+  postMessage({
+    id: CommandType.SET_LYRICS_MODE,
+    value: lyricsMode,
+  });
+
+  clickDispayButton(el_displaySetting_show_lyrics, lyricsMode);
+};
+
+//ProPresenter connecting
+
+let propresenterIP = null;
+let propresenterPORT = null;
+let propresenterHOST = null;
+let STAGE_PASSWORD = null;
+let propresenterConnected = false;
+
+let propresenterSocket = null;
+let propresenterReconnectTimer = null;
+let propresenterShouldConnect = false;
+
+function connectProPresenter(step = 0) {
+  if (step === 0) {
+    const ip = prompt(
+      "Please enter the IP of the computer running ProPresenter",
+      propresenterIP ?? "",
+    );
+
+    if (ip === null || !ip.trim()) return false;
+    propresenterIP = ip.trim();
+
+    const port = prompt(
+      "Please enter the PORT of ProPresenter.\n" +
+        "(Settings → Network → Enable Network)",
+      propresenterPORT ?? "1025",
+    );
+
+    if (port === null || !port.trim()) return false;
+
+    const parsedPort = Number(port.trim());
+
+    if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+      alert("Please enter a valid port number.");
+      return false;
+    }
+
+    propresenterPORT = String(parsedPort);
+
+    STAGE_PASSWORD = prompt("Enter stage display password", STAGE_PASSWORD);
+    if (!STAGE_PASSWORD) return false;
+  }
+
+  if (!propresenterIP || !propresenterPORT) return false;
+
+  // Only one socket and one reconnect loop at a time.
+  propresenterShouldConnect = true;
+  clearTimeout(propresenterReconnectTimer);
+
+  if (propresenterSocket) {
+    const oldSocket = propresenterSocket;
+    propresenterSocket = null;
+    oldSocket.close();
+  }
+
+  propresenterHOST = `${propresenterIP}:${propresenterPORT}`;
+
+  //Use wss:// for secure networks over https://
+  const ws = new WebSocket(`ws://${propresenterHOST}/stagedisplay`);
+
+  propresenterSocket = ws;
+  propresenterConnected = false;
+
+  ws.addEventListener("open", () => {
+    if (propresenterSocket !== ws) return;
+
+    console.log("Connected to ProPresenter");
+    propresenterConnected = true;
+
+    // Authenticate with the Stage Display API
+    ws.send(
+      JSON.stringify({
+        pwd: STAGE_PASSWORD,
+        ptl: 610,
+        acn: "ath",
+      }),
+    );
+  });
+
+  ws.addEventListener("message", (event) => {
+    if (propresenterSocket !== ws) return;
+    let data;
+
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      console.log("Received non-JSON message:", event.data);
+      return;
+    }
+
+    if (data.acn === "ath") {
+      if (data.ath === true) {
+        console.log("Stage Display authenticated!");
+
+        // Request all available Stage Display layouts
+        ws.send(JSON.stringify({acn: "asl"}));
+
+        // Request the currently selected Stage Display layout
+        ws.send(JSON.stringify({acn: "psl"}));
+      } else {
+        console.error("Authentication failed:", data.err);
+      }
+    }
+
+    // Stage Display frame updates contain current/next slide data
+    if (data.acn === "fv") {
+      console.log("Stage Display frame update:", data.ary);
+
+      if (!data.ary[0]) {
+        console.error("slide does noet have current slide text");
+        return;
+      }
+      if (data.ary[0].acn != "cs") {
+        console.error("slide's array's first element is not the current slide");
+        return;
+      }
+      if (!data.ary[0].txt) {
+        console.warn("slide update did not contain any text.");
+        postMessage({
+          id: CommandType.SET_LYRICS_TEXT,
+          value: "",
+        });
+        return;
+      }
+      let currentText = data.ary[0].txt;
+
+      //Split french and english lyrics
+      if (currentText.includes("\r")) {
+        currentText = currentText.split("\r")[1];
+      }
+
+      postMessage({
+        id: CommandType.SET_LYRICS_TEXT,
+        value: currentText,
+      });
+      currentLyrics = currentText;
+    }
+  });
+
+  ws.addEventListener("error", (error) => {
+    console.error("ProPresenter WebSocket error:", error);
+    // onclose handles reconnection.
+  });
+
+  ws.addEventListener("close", () => {
+    if (propresenterSocket !== ws) return;
+
+    propresenterSocket = null;
+    propresenterConnected = false;
+
+    if (propresenterShouldConnect) {
+      console.warn("Disconnected; retrying in 2 seconds...");
+
+      propresenterReconnectTimer = setTimeout(() => {
+        if (propresenterShouldConnect) {
+          connectProPresenter(2);
+        }
+      }, 2000);
+    }
+  });
+
+  return true; // Connection attempt started, not yet confirmed.
+}
+
+function disconnectProPresenter() {
+  propresenterShouldConnect = false;
+  clearTimeout(propresenterReconnectTimer);
+
+  const ws = propresenterSocket;
+  propresenterSocket = null;
+  propresenterConnected = false;
+
+  if (ws) ws.close();
+}
+
+window.addEventListener("beforeunload", disconnectProPresenter);
+
 //counter controls buttons
 const el_pauseTimer = document.getElementById("pauseTimer");
 const el_addMinute = document.getElementById("addMinute");
@@ -165,6 +365,7 @@ let maximized = false;
 let showingMessage = false;
 let messageText = null;
 
+let messageClearTimer = null;
 el_setMsg.onclick = () => {
   showingMessage = true;
   messageText = el_messageText.value;
@@ -172,9 +373,15 @@ el_setMsg.onclick = () => {
     id: CommandType.SET_MESSAGE,
     value: el_messageText.value,
   });
+
+  clearTimeout(messageClearTimer);
+  messageClearTimer = window.setTimeout(() => {
+    el_clearMsg.onclick();
+  }, 15000);
 };
 
 el_clearMsg.onclick = () => {
+  clearTimeout(messageClearTimer);
   showingMessage = false;
   messageText = null;
   maximized = false;
@@ -241,6 +448,11 @@ function addSaveFile() {
       maximized: false,
       showingMessage: false,
       messageText: null,
+      lyricsMode: false,
+      currentLyrics: currentLyrics,
+      propresenterIP: propresenterIP,
+      propresenterPORT: propresenterPORT,
+      STAGE_PASSWORD: STAGE_PASSWORD,
     });
     const saveId = saves.length - 1;
     saveNames.push(`savefile ${saveId}`);
@@ -407,6 +619,11 @@ function getSave() {
     maximized: maximized,
     showingMessage: showingMessage,
     messageText: messageText,
+    lyricsMode: lyricsMode,
+    currentLyrics: currentLyrics,
+    propresenterIP: propresenterIP,
+    propresenterPORT: propresenterPORT,
+    STAGE_PASSWORD: STAGE_PASSWORD,
   };
 }
 function loadSave(save) {
@@ -437,6 +654,17 @@ function loadSave(save) {
   maximized = save.maximized;
   showingMessage = save.showingMessage;
   messageText = save.messageText;
+
+  lyricsMode = save.lyricsMode;
+  currentLyrics = save.currentLyrics;
+  propresenterPORT = save.propresenterPORT;
+  propresenterIP = save.propresenterIP;
+  propresenterHOST = propresenterIP + ":" + propresenterPORT;
+  STAGE_PASSWORD = save.STAGE_PASSWORD;
+
+  if (lyricsMode) {
+    connectProPresenter(2);
+  }
 
   return true;
 }
@@ -474,6 +702,7 @@ function updateUI() {
   clickDispayButton(el_displaySetting_show_event, showEvent);
   clickDispayButton(el_displaySetting_show_color, showColor);
   clickDispayButton(el_maximizeMsg, maximized);
+  clickDispayButton(el_displaySetting_show_lyrics, lyricsMode);
 
   //Get timeMaster working again
   list.innerHTML = "";
@@ -547,6 +776,8 @@ function updateDisplay() {
   if (showingMessage)
     postMessage({id: CommandType.SET_MAXIMIZE_MESSAGE, value: maximized});
   postMessage({id: CommandType.SET_PAUZE, value: paused});
+  postMessage({id: CommandType.SET_LYRICS_MODE, value: lyricsMode});
+  postMessage({id: CommandType.SET_LYRICS_TEXT, value: currentLyrics});
 }
 
 const cover = document.getElementById("cover");

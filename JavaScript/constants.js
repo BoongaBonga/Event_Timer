@@ -1,4 +1,4 @@
-const VERSION = 3.0;
+const VERSION = 4.0;
 
 const refreshRate = 60; //Hz
 const refreshDt = 1000 / refreshRate; //ms
@@ -17,4 +17,6 @@ const CommandType = {
   CLEAR_MESSAGE: 9,
   SET_MAXIMIZE_MESSAGE: 10,
   SET_PAUZE: 11,
+  SET_LYRICS_MODE: 12,
+  SET_LYRICS_TEXT: 13,
 };

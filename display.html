@@ -17,21 +17,33 @@
 <body onload="load()">
     <div id="loading"><div id="loadingCircle"></div></div>
 
-    <div id="showCounter">
-        <img id="logoSmall" src="Images/revive_logo.png">
-        <span id="counter">LOADING</span>
-        <span id="testCounter">LOADING</span>
+    <div id="noLyrics" style="opacity: 0;">
+        <div id="showCounter">
+            <img id="logoSmall" src="Images/revive_logo.png">
+            <span id="counter">LOADING</span>
+            <span id="testCounter">LOADING</span>
+        </div>
+
+        <div id="hideCounter">
+            <img id="logoBig" src="Images/revive_logo.png">
+        </div>
+
+        <span id="event">Worship</span>
+        <span id="testEvent">Worship</span>
+        <span id="message">S.O.S.</span>
+        <span id="testMessage">M</span>
+        <div id="progressBar"></div>
     </div>
 
-    <div id="hideCounter">
-        <img id="logoBig" src="Images/revive_logo.png">
+    <!--a separate layout that has place for lyrics-->
+    <div id="lyrics" style="opacity: 1;">
+        <img id="lyricsLogo" src="Images/revive_logo.png">
+        <span id="lyricsCounter">00:00:00</span>
+        <span id="lyricsText">This is my desire
+to worship you
+        </span>
+        <span id="lyricsTextTest">this is my desire</span>
     </div>
-
-    <span id="event">Worship</span>
-    <span id="testEvent">Worship</span>
-    <span id="message">S.O.S.</span>
-    <span id="testChar">M</span>
-    <div id="progressBar"></div>
 
     <script src="JavaScript/constants.js"></script>
     <script src="JavaScript/counter.js"></script>

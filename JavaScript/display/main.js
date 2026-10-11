@@ -8,9 +8,12 @@ let paused = false;
 let showingMessage = false;
 let maximized = false;
 
+let lyricsMode = false;
+
 let currentTimerDuration = 3e5;
 
 function setMaximized(isMaximized) {
+  lastMessageLayout = "";
   if (isMaximized) {
     el_message.classList.add("maximized");
     el_counter.style.display = "none";
@@ -52,12 +55,27 @@ window.setInterval(() => {
   updateProgressBar();
 }, refreshDt);
 
-//Less performance-critical parts
-window.setInterval(() => {
-  if (showingMessage) {
-    setMessageFontSize();
-  } else {
-    setEventFontSize();
-  }
+window.setTimeout(() => {
   setCounterFontSize();
+  setEventFontSize();
 }, 200);
+
+let resizeTimeout;
+
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimeout);
+
+  resizeTimeout = setTimeout(() => {
+    if (showingMessage) {
+      setMessageFontSize();
+    } else {
+      setEventFontSize();
+    }
+
+    if (lyricsMode) {
+      setLyricsFontSize();
+    }
+
+    setCounterFontSize();
+  }, 100);
+});
