@@ -7,6 +7,7 @@ function handleMessage(msg) {
       //set this counter to be synced with the main one.
       counter.milliseconds = msg.value.ms;
       counter.finished = msg.value.finished;
+      setCounterFontSize();
       break;
     }
     case CommandType.NEW_TIMER: {
@@ -56,6 +57,7 @@ function handleMessage(msg) {
       } else {
         el_event.style.display = "none";
       }
+      setEventFontSize();
       break;
     }
     case CommandType.SET_SHOW_COLOR: {
@@ -67,6 +69,12 @@ function handleMessage(msg) {
       el_event.style.display = "none";
       el_message.style.display = "block";
       el_message.textContent = msg.value;
+
+      el_lyricsMessage.style.display = "block";
+      el_lyricsMessage.textContent = msg.value;
+      el_lyricsLogo.style.display = "none";
+      el_lyricsCounter.style.display = "none";
+
       setMessageFontSize();
       break;
     }
@@ -75,6 +83,11 @@ function handleMessage(msg) {
       maximized = false;
       if (showingEvent) el_event.style.display = "block";
       el_message.style.display = "none";
+
+      el_lyricsMessage.style.display = "none";
+      el_lyricsLogo.style.display = "block";
+      el_lyricsCounter.style.display = "block";
+
       el_counter.style.display = "block";
       break;
     }
@@ -104,6 +117,7 @@ function handleMessage(msg) {
     case CommandType.SET_LYRICS_TEXT: {
       console.log("New lyrics text: " + msg.value);
       el_lyricsText.textContent = msg.value;
+      setLyricsFontSize();
     }
   }
 }

@@ -10,8 +10,11 @@ const el_testMessage = document.getElementById("testMessage");
 const root = document.querySelector(":root");
 const el_lyricsCounter = document.getElementById("lyricsCounter");
 const el_lyricsText = document.getElementById("lyricsText");
+const el_lyricsLogo = document.getElementById("lyricsLogo");
 const el_lyrics = document.getElementById("lyrics");
 const el_noLyrics = document.getElementById("noLyrics");
+const el_lyricsMessage = document.getElementById("lyricsMessage");
+const el_lyricsTestMessage = document.getElementById("lyricsTestMessage");
 
 function maxFontSize(
   containerRect,
@@ -129,13 +132,17 @@ let lastMessageLayout = "";
 
 function setMessageFontSize() {
   if (!showingMessage) return;
-  if (getComputedStyle(el_message).display === "none") return;
 
-  const text = el_message.textContent;
+  const messageElement = lyricsMode ? el_lyricsMessage : el_message;
+  const messageTestElement = lyricsMode ? el_lyricsTestMessage : el_testMessage;
+
+  if (getComputedStyle(messageElement).display === "none") return;
+
+  const text = messageElement.textContent;
   if (!text.trim()) return;
 
-  const rect = el_message.getBoundingClientRect();
-  const style = getComputedStyle(el_message);
+  const rect = messageElement.getBoundingClientRect();
+  const style = getComputedStyle(messageElement);
 
   const px = (value) => parseFloat(value) || 0;
 
@@ -167,7 +174,7 @@ function setMessageFontSize() {
     text,
     width,
     height,
-    maximized: el_message.classList.contains("maximized"),
+    maximized: messageElement.classList.contains("maximized"),
     fontFamily: style.fontFamily,
     fontWeight: style.fontWeight,
     fontStyle: style.fontStyle,
@@ -195,45 +202,121 @@ function setMessageFontSize() {
     "wordBreak",
     "whiteSpace",
   ]) {
-    el_testMessage.style[prop] = style[prop];
+    messageTestElement.style[prop] = style[prop];
   }
 
-  el_testMessage.style.lineHeight = testLineHeight;
+  messageTestElement.style.lineHeight = testLineHeight;
 
-  const size = maxFontSize({width, height}, text, el_testMessage, {
+  const size = maxFontSize({width, height}, text, messageTestElement, {
     minFontSize: 1,
     maxFontSize: 2048,
     precision: 0.5,
   });
 
   if (size > 0) {
-    el_message.style.fontSize = `${size}px`;
+    messageElement.style.fontSize = `${size}px`;
     lastMessageLayout = layoutKey;
   }
 
   console.log({
     width,
     height,
-    maximized: el_message.classList.contains("maximized"),
+    maximized: messageElement.classList.contains("maximized"),
     size,
   });
 }
 
+let lastEventLayout;
 function setEventFontSize() {
-  const testRect = el_testEvent.getBoundingClientRect();
-  const eventRect = el_event.getBoundingClientRect();
+  if (!showingEvent) return;
+  if (getComputedStyle(el_event).display === "none") return;
 
-  el_event.style.fontSize =
-    Math.min(
-      0.8 * eventRect.height,
-      (eventRect.width / testRect.width / testRect.height) * 0.8,
-    ) + "px";
+  const text = el_event.textContent;
+  if (!text.trim()) return;
+
+  const rect = el_event.getBoundingClientRect();
+  const style = getComputedStyle(el_event);
+
+  const px = (value) => parseFloat(value) || 0;
+
+  const fontSizePx = parseFloat(style.fontSize) || 1;
+  const lineHeightPx = parseFloat(style.lineHeight);
+
+  const testLineHeight =
+    style.lineHeight !== "normal" && Number.isFinite(lineHeightPx)
+      ? `${lineHeightPx / fontSizePx}`
+      : "normal";
+
+  const width = Math.floor(
+    rect.width -
+      px(style.borderLeftWidth) -
+      px(style.borderRightWidth) -
+      px(style.paddingLeft) -
+      px(style.paddingRight),
+  );
+
+  const height = Math.floor(
+    rect.height -
+      px(style.borderTopWidth) -
+      px(style.borderBottomWidth) -
+      px(style.paddingTop) -
+      px(style.paddingBottom),
+  );
+
+  const layoutKey = JSON.stringify({
+    text,
+    width,
+    height,
+    fontFamily: style.fontFamily,
+    fontWeight: style.fontWeight,
+    fontStyle: style.fontStyle,
+    lineHeight: style.lineHeight,
+    letterSpacing: style.letterSpacing,
+    wordSpacing: style.wordSpacing,
+    whiteSpace: style.whiteSpace,
+    overflowWrap: style.overflowWrap,
+    wordBreak: style.wordBreak,
+  });
+
+  if (layoutKey === lastEventLayout) return;
+
+  for (const prop of [
+    "fontFamily",
+    "fontWeight",
+    "fontStyle",
+    "fontStretch",
+    "fontVariant",
+    "letterSpacing",
+    "wordSpacing",
+    "textTransform",
+    "textIndent",
+    "overflowWrap",
+    "wordBreak",
+    "whiteSpace",
+  ]) {
+    el_testEvent.style[prop] = style[prop];
+  }
+
+  el_testEvent.style.lineHeight = testLineHeight;
+
+  const size = maxFontSize({width, height}, text, el_testEvent, {
+    minFontSize: 1,
+    maxFontSize: 2048,
+    precision: 0.5,
+  });
+
+  if (size > 0) {
+    el_event.style.fontSize = `${size}px`;
+    lastMessageLayout = layoutKey;
+  }
 }
 
 function setCounterFontSize() {
   if (maximized) return;
 
   let desiredFontSize;
+
+  el_testCounter.textContent = el_counter.textContent;
 
   //get the width of the string
   let sample = el_testCounter.getBoundingClientRect();

@@ -16,10 +16,14 @@ function setMaximized(isMaximized) {
   lastMessageLayout = "";
   if (isMaximized) {
     el_message.classList.add("maximized");
+    el_lyricsMessage.classList.add("maximized");
     el_counter.style.display = "none";
+    el_lyricsText.style.display = "none";
   } else {
     el_message.classList.remove("maximized");
+    el_lyricsMessage.classList.remove("maximized");
     el_counter.style.display = "block";
+    el_lyricsText.style.display = "block";
   }
 }
 
@@ -79,3 +83,15 @@ window.addEventListener("resize", () => {
     setCounterFontSize();
   }, 100);
 });
+
+if (showingMessage) {
+  setMessageFontSize();
+} else {
+  setEventFontSize();
+}
+
+if (lyricsMode) {
+  setLyricsFontSize();
+}
+
+setCounterFontSize();

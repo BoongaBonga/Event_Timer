@@ -173,6 +173,7 @@ body {
   font-size: calc(var(--font-size) / 10 * 3);
 }
 
+#lyricsMessage,
 #message {
   display: none;
 
@@ -195,6 +196,7 @@ body {
   border-style: solid;
 }
 
+#lyricsTestMessage,
 #testMessage {
   display: block;
   position: fixed;
@@ -342,4 +344,33 @@ body {
   font-family: 'Archivo', sans-serif;
   font-size: 1px;
   opacity: 0;
+}
+
+#lyricsMessage{
+  position: absolute;
+
+  width: 90vw;
+  top: 2%;
+  left: 50%;
+  height: calc(25vh + 10vmin);
+}
+#lyricsMessage.maximized {
+  width: 90vw;
+  max-width: 90vw;
+
+  /*
+   * Leave room above the progress bar.
+   * The browser can wrap the text inside this width.
+   */
+  height: 96%;
+  max-height: none;
+
+  overflow: hidden;
+
+  line-height: 1.05;
+
+  text-align: center;
+  white-space: normal;
+
+  box-sizing: border-box;
 }
